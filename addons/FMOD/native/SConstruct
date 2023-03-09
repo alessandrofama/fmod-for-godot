@@ -1,0 +1,492 @@
+#!/usr/bin/env python
+import os
+import sys
+import subprocess
+import glob
+from typing import Dict
+import html
+
+if sys.version_info < (3,):
+
+    def decode_utf8(x):
+        return x
+
+else:
+    import codecs
+
+    def decode_utf8(x):
+        return codecs.utf_8_decode(x)[0]
+
+
+def get_fmod_paths(env: Dict) -> Dict:
+    fmod_api = env["fmod_api"]
+
+    fmod_api_core_headers_path = fmod_api + "/api/core/inc/"
+    fmod_api_studio_headers_path = fmod_api + "/api/studio/inc/"
+
+    if env["platform"] == "windows":
+        fmod_api_core_libs_path = fmod_api + "/api/core/lib/x64/"
+        fmod_api_studio_libs_path = fmod_api + "/api/studio/lib/x64/"
+        fmodL_library = "fmodL_vc"
+        fmod_library = "fmod_vc"
+        fmodstudio_library = "fmodstudio_vc"
+        fmodstudioL_library = "fmodstudioL_vc"
+    elif env["platform"] == "macos":
+        fmod_api_core_libs_path = fmod_api + "/api/core/lib/"
+        fmod_api_studio_libs_path = fmod_api + "/api/studio/lib/"
+        fmodL_library = "libfmodL"
+        fmod_library = "libfmod"
+        fmodstudio_library = "libfmodstudio"
+        fmodstudioL_library = "libfmodstudioL"
+    elif env["platform"] == "linux":
+        fmod_api_core_libs_path = fmod_api + "/api/core/lib/x86_64/"
+        fmod_api_studio_libs_path = fmod_api + "/api/studio/lib/x86_64/"
+        fmodL_library = "libfmodL"
+        fmod_library = "libfmod"
+        fmodstudio_library = "libfmodstudio"
+        fmodstudioL_library = "libfmodstudioL"
+    elif env["platform"] == "android":
+        fmod_api_core_libs_path = fmod_api + "/api/core/lib/arm64-v8a/"
+        fmod_api_studio_libs_path = fmod_api + "/api/studio/lib/arm64-v8a/"
+        fmodL_library = "libfmodL"
+        fmod_library = "libfmod"
+        fmodstudio_library = "libfmodstudio"
+        fmodstudioL_library = "libfmodstudioL"
+    elif env["platform"] == "ios":
+        fmod_api_core_libs_path = fmod_api + "/api/core/lib/"
+        fmod_api_studio_libs_path = fmod_api + "/api/studio/lib/"
+        fmodL_library = "libfmodL_iphoneos"
+        fmod_library = "libfmod_iphoneos"
+        fmodstudio_library = "libfmodstudio_iphoneos"
+        fmodstudioL_library = "libfmodstudioL_iphoneos"
+
+    return {
+        "fmod_api_core_headers_path": fmod_api_core_headers_path,
+        "fmod_api_studio_headers_path": fmod_api_studio_headers_path,
+        "fmod_api_core_libs_path": fmod_api_core_libs_path,
+        "fmod_api_studio_libs_path": fmod_api_studio_libs_path,
+        "fmodL_library": fmodL_library,
+        "fmod_library": fmod_library,
+        "fmodstudio_library": fmodstudio_library,
+        "fmodstudioL_library": fmodstudioL_library,
+    }
+
+env = SConscript("godot-cpp/SConstruct")
+
+opts = Variables([], ARGUMENTS)
+
+opts.Add(
+    PathVariable(
+        "target_path",
+        "The path where the lib is installed.",
+        "lib",
+        PathVariable.PathIsDirCreate,
+    )
+)
+opts.Add(PathVariable("fmod_api", "The FMOD API path", "", PathVariable.PathAccept))
+opts.Add(
+    PathVariable(
+        "android_arch", "Android Arch (arm64)", "arm64", PathVariable.PathAccept
+    )
+)
+opts.Add(PathVariable("ios_arch", "iOS Arch (arm64)", "arm64", PathVariable.PathAccept))
+opts.Add("ios_min_version", "Target minimum iphoneos/iphonesimulator version", "11.0")
+opts.Add(BoolVariable("ci", "CI Build", "no"))
+opts.Update(env)
+
+fmod_paths = get_fmod_paths(env)
+fmod_api_core_headers_path = fmod_paths["fmod_api_core_headers_path"]
+fmod_api_studio_headers_path = fmod_paths["fmod_api_studio_headers_path"]
+fmod_api_core_libs_path = fmod_paths["fmod_api_core_libs_path"]
+fmod_api_studio_libs_path = fmod_paths["fmod_api_studio_libs_path"]
+fmodL_library = fmod_paths["fmodL_library"]
+fmod_library = fmod_paths["fmod_library"]
+fmodstudio_library = fmod_paths["fmodstudio_library"]
+fmodstudioL_library = fmod_paths["fmodstudioL_library"]
+
+if env["target"] == "template_debug":
+    env.Append(CPPDEFINES=["FMOD_DEBUG"])
+
+if env["platform"] == "windows":
+    env["target_path"] += "/win64/"
+    if env["target"] in ("template_debug"):
+        env["target_path"] += "debug/"
+    else:
+        env["target_path"] += "release/"
+
+    env.Append(LINKFLAGS=["/WX"])
+
+    env.Append(CPPDEFINES=["FMOD_WIN"])
+
+elif env["platform"] == "macos":
+    env["target_path"] += "/macos/"
+    if env["target"] in ("template_debug"):
+        env["target_path"] += "debug/"
+    else:
+        env["target_path"] += "release/"
+
+    macos_install_name = "@rpath/libfmod.{}.{}.framework/libfmod.{}.{}".format(
+        env["platform"], env["target"], env["platform"], env["target"]
+    )
+
+    env.Append(
+        LINKFLAGS=[
+            "-framework",
+            "Cocoa",
+            "-Wl,-undefined,dynamic_lookup",
+            "-Wl,-rpath,@loader_path",
+            "-Wl,-install_name,{}".format(macos_install_name),
+        ]
+    )
+
+    env.Append(CPPDEFINES=["FMOD_OSX"])
+
+elif env["platform"] == "linux":
+    env["target_path"] += "/linux/"
+
+    env.Append(CCFLAGS=["-fPIC", "-Wwrite-strings"])
+    env.Append(LINKFLAGS=["-Wl,-R,'$$ORIGIN'"])
+    env.Append(LINKFLAGS=["-m64", "-fuse-ld=gold"])
+
+    if env["target"] in ("template_debug"):
+        env["target_path"] += "debug/"
+    else:
+        env["target_path"] += "release/"
+
+    env.Append(CPPDEFINES=["FMOD_LINUX"])
+
+elif env["platform"] == "android":
+    env["target_path"] += "/android/" + env["android_arch"] + "/"
+
+    if env["target"] in ("template_debug"):
+        env["target_path"] += "debug/"
+    else:
+        env["target_path"] += "release/"
+
+    env.Append(CPPDEFINES=["FMOD_ANDROID"])
+
+elif env["platform"] == "ios":
+    env["target_path"] += "/ios/"
+
+    if env["ios_arch"] == "arm64":
+        env["target_path"] += "arm64/"
+
+    if env["target"] in ("template_debug"):
+        env["target_path"] += "debug/"
+    else:
+        env["target_path"] += "release/"
+
+    if env["ios_arch"] == "x86_64":
+        sdk_name = "iphonesimulator"
+        env.Append(
+            CCFLAGS=["-mios-simulator-version-min={}".format(env["ios_min_version"])]
+        )
+        env.Append(
+            LINKFLAGS=["-mios-simulator-version-min={}".format(env["ios_min_version"])]
+        )
+    else:
+        sdk_name = "iphoneos"
+        env.Append(CCFLAGS=["-miphoneos-version-min={}".format(env["ios_min_version"])])
+        env.Append(
+            LINKFLAGS=["-miphoneos-version-min={}".format(env["ios_min_version"])]
+        )
+
+    try:
+        sdk_path = decode_utf8(
+            subprocess.check_output(
+                ["xcrun", "--sdk", sdk_name, "--show-sdk-path"]
+            ).strip()
+        )
+    except (subprocess.CalledProcessError, OSError):
+        raise ValueError(
+            "Failed to find SDK path while running xcrun --sdk {} --show-sdk-path.".format(
+                sdk_name
+            )
+        )
+
+    env.Append(
+        CCFLAGS=[
+            "-arch",
+            env["ios_arch"],
+            "-isysroot",
+            sdk_path,
+        ]
+    )
+
+    ios_install_name = "@rpath/libfmod.{}.{}.framework/libfmod.{}.{}".format(
+        env["platform"], env["target"], env["platform"], env["target"]
+    )
+
+    env.Append(
+        LINKFLAGS=[
+            "-arch",
+            env["ios_arch"],
+            "-miphoneos-version-min=" + env["ios_min_version"],
+            "-framework",
+            "AudioToolbox",
+            "-framework",
+            "AVFoundation",
+            "-Wl,-undefined,dynamic_lookup",
+            "-Wl,-install_name,{}".format(ios_install_name),
+            "-isysroot",
+            sdk_path,
+            "-F" + sdk_path,
+        ]
+    )
+
+    env.Append(CPPDEFINES=["FMOD_IOS"])
+
+env.Append(CPPPATH=[fmod_api_core_headers_path, fmod_api_studio_headers_path])
+env.Append(LIBPATH=[fmod_api_studio_libs_path, fmod_api_core_libs_path])
+
+if env["target"] in ("template_debug") or env["platform"] == "android":
+    env.Append(LIBS=[fmodL_library, fmodstudioL_library])
+else:
+    env.Append(LIBS=[fmod_library, fmodstudio_library])
+
+env.Append(
+    CPPPATH=["src/", "src/api/", "src/misc/", "src/scene/", "src/utils/", "src/editor/"]
+)
+
+sources = []
+sources.append(Glob("src/*.cpp"))
+sources.append(Glob("src/api/*.cpp"))
+sources.append(Glob("src/misc/*.cpp"))
+sources.append(Glob("src/utils/*.cpp"))
+sources.append(Glob("src/scene/*.cpp"))
+sources.append(Glob("src/editor/*.cpp"))
+
+if env["platform"] == "windows":
+    library = env.SharedLibrary(
+        target=env["target_path"]
+        + "libfmod.{}.{}.dll".format(env["platform"], env["target"]),
+        source=sources,
+    )
+
+    def copy_libs(self, arg, env, executor=None):
+        if env["target"] == "template_debug":
+            Execute(
+                Copy(
+                    env["target_path"] + "fmodL.dll",
+                    fmod_api_core_libs_path + "fmodL.dll",
+                )
+            )
+            Execute(
+                Copy(
+                    env["target_path"] + "fmodstudioL.dll",
+                    fmod_api_studio_libs_path + "fmodstudioL.dll",
+                )
+            )
+        else:
+            Execute(
+                Copy(
+                    env["target_path"] + "fmod.dll",
+                    fmod_api_core_libs_path + "fmod.dll",
+                )
+            )
+            Execute(
+                Copy(
+                    env["target_path"] + "fmodstudio.dll",
+                    fmod_api_studio_libs_path + "fmodstudio.dll",
+                )
+            )
+
+    copy_libs_action = Action("", copy_libs)
+    AddPostAction(library, copy_libs_action)
+
+if env["platform"] == "macos":
+    library = env.SharedLibrary(
+        target=env["target_path"]
+        + "libfmod.{}.{}.framework/libfmod.{}.{}".format(
+            env["platform"], env["target"], env["platform"], env["target"]
+        ),
+        source=sources,
+    )
+
+    def copy_libs(self, arg, env, executor=None):
+        if env["target"] == "template_debug":
+            Execute(
+                Copy(
+                    env["target_path"]
+                    + "libfmod.{}.{}.framework/{}".format(
+                        env["platform"], env["target"], "libfmodL.dylib"
+                    ),
+                    fmod_api_core_libs_path + "libfmodL.dylib",
+                )
+            )
+            Execute(
+                Copy(
+                    env["target_path"]
+                    + "libfmod.{}.{}.framework/{}".format(
+                        env["platform"], env["target"], "libfmodstudioL.dylib"
+                    ),
+                    fmod_api_studio_libs_path + "libfmodstudioL.dylib",
+                )
+            )
+        else:
+            Execute(
+                Copy(
+                    env["target_path"]
+                    + "libfmod.{}.{}.framework/{}".format(
+                        env["platform"], env["target"], "libfmod.dylib"
+                    ),
+                    fmod_api_core_libs_path + "libfmod.dylib",
+                )
+            )
+            Execute(
+                Copy(
+                    env["target_path"]
+                    + "libfmod.{}.{}.framework/{}".format(
+                        env["platform"], env["target"], "libfmodstudio.dylib"
+                    ),
+                    fmod_api_studio_libs_path + "libfmodstudio.dylib",
+                )
+            )
+
+    copy_libs_action = Action("", copy_libs)
+    AddPostAction(library, copy_libs_action)
+
+if env["platform"] == "linux":
+    import shutil
+
+    library = env.SharedLibrary(
+        target=env["target_path"]
+        + "libfmod.{}.{}.so".format(env["platform"], env["target"]),
+        source=sources,
+    )
+
+    def copy_libs(self, arg, env, executor=None):
+        print("copy libs")
+        dst_dir = env["target_path"]
+        core_src_dir = fmod_api_core_libs_path
+        studio_src_dir = fmod_api_studio_libs_path
+        if env["target"] == "template_debug":
+            for filename in os.listdir(core_src_dir):
+                if filename.startswith("libfmodL"):
+                    src_file = os.path.join(core_src_dir, filename)
+                    dst_file = os.path.join(dst_dir, filename)
+                    shutil.copy2(src_file, dst_file)
+            for filename in os.listdir(studio_src_dir):
+                if filename.startswith("libfmodstudioL"):
+                    src_file = os.path.join(studio_src_dir, filename)
+                    dst_file = os.path.join(dst_dir, filename)
+                    shutil.copy2(src_file, dst_file)
+        else:
+            for filename in os.listdir(core_src_dir):
+                if filename.startswith("libfmod") and not filename.startswith("libfmodL"):
+                    src_file = os.path.join(core_src_dir, filename)
+                    dst_file = os.path.join(dst_dir, filename)
+                    shutil.copy2(src_file, dst_file)
+            for filename in os.listdir(studio_src_dir):
+                if filename.startswith("libfmodstudio") and not filename.startswith("libfmodstudioL"):
+                    src_file = os.path.join(studio_src_dir, filename)
+                    dst_file = os.path.join(dst_dir, filename)
+                    shutil.copy2(src_file, dst_file)
+
+    copy_libs_action = Action("", copy_libs)
+    AddPostAction(library, copy_libs_action)
+
+if env["platform"] == "ios":
+    ios_lib_path = env["target_path"] + "libfmod.{}.{}.framework/libfmod.{}.{}".format(
+        env["platform"], env["target"], env["platform"], env["target"]
+    )
+    
+    library = env.SharedLibrary(
+        target=ios_lib_path,
+        source=sources,
+    )
+
+    output_file = "Info.plist"
+    output_dir = env["target_path"] + "libfmod.{}.{}.framework".format(
+        env["platform"], env["target"]
+    )
+
+    env.Replace(LIB_NAME="libfmod.{}.{}".format(env["platform"], env["target"]))
+    env.Replace(MIN_IOS_VERSION=env["ios_min_version"])
+
+    def create_output_file(target, source, env):
+        # Create the output directory if it doesn't exist
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+
+        lib_name = "libfmod.{}.{}".format(env["platform"], env["target"])
+
+        with open(os.path.join(output_dir, output_file), "w") as f:
+            xml_text = """<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+<key>CFBundleShortVersionString</key>
+<string>1.0</string>
+<key>CFBundleIdentifier</key>
+<string>com.gdextension.framework.{}</string>
+<key>CFBundleName</key>
+<string>{}</string>
+<key>CFBundleExecutable</key>
+<string>{}</string>
+<key>DTPlatformName</key>
+<string>iphoneos</string>
+<key>CFBundleInfoDictionaryVersion</key>
+<string>6.0</string>
+<key>CFBundleVersion</key>
+<string>1</string>
+<key>CFBundlePackageType</key>
+<string>FMWK</string>
+<key>MinimumOSVersion</key>
+<string>{}</string>
+</dict>
+</plist>""".format(
+                lib_name, lib_name, lib_name, env["ios_min_version"]
+            )
+
+            unescaped_text = html.unescape(xml_text)
+            f.write(unescaped_text)
+        return None
+
+    target = os.path.join(output_dir, output_file)
+    create_output_file_action = Action(target, create_output_file)
+    AddPostAction(library, create_output_file)
+
+if env["platform"] == "android":
+    library = env.SharedLibrary(
+        target=env["target_path"]
+        + "libfmod.{}.{}.{}.so".format(
+            env["platform"], env["target"], env["android_arch"]
+        ),
+        source=sources,
+    )
+
+    def copy_libs(self, arg, env, executor=None):
+        if env["target"] == "template_debug":
+            Execute(
+                Copy(
+                    env["target_path"] + "libfmodL.so",
+                    fmod_api_core_libs_path + "libfmodL.so",
+                )
+            )
+            Execute(
+                Copy(
+                    env["target_path"] + "libfmodstudioL.so",
+                    fmod_api_studio_libs_path + "libfmodstudioL.so",
+                )
+            )
+        else:
+            Execute(
+                Copy(
+                    env["target_path"] + "libfmodL.so",
+                    fmod_api_core_libs_path + "libfmodL.so",
+                )
+            )
+            Execute(
+                Copy(
+                    env["target_path"] + "libfmodstudioL.so",
+                    fmod_api_studio_libs_path + "libfmodstudioL.so",
+                )
+            )
+
+    copy_libs_action = Action("", copy_libs)
+    AddPostAction(library, copy_libs_action)
+
+Default(library)
+
+Help(opts.GenerateHelpText(env))

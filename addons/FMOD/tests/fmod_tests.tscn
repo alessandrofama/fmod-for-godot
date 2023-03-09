@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://c2tpoba82wbri"]
+
+[ext_resource type="Script" path="res://addons/FMOD/tests/fmod_test_framework.gd" id="1_f26jb"]
+
+[node name="Node" type="Node"]
+script = ExtResource("1_f26jb")

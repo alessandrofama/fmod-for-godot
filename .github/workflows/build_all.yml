@@ -1,0 +1,297 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+env:
+  FMOD_VERSION: 20212
+  GODOT_ENGINE_VERSION: "4.0"
+  GODOT_ENGINE_STAGE: "stable"
+  INTEGRATION_VERSION: "1.0-alpha-1"
+
+jobs:
+  build-all:
+    runs-on: ${{ matrix.os }}
+    name: ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Windows
+            os: "windows-latest"
+            api-platform: windows
+            scons-platform: windows
+            fmod-executable-suffix: win-installer.exe
+            artifact-name: windows
+
+          - name: macOS
+            os: "macos-11"
+            api-platform: mac
+            scons-platform: macos
+            fmod-executable-suffix: mac-installer.dmg
+            artifact-name: macos
+
+          - name: Linux
+            os: "ubuntu-20.04"
+            api-platform: linux
+            scons-platform: linux
+            fmod-executable-suffix: linux.tar.gz
+            artifact-name: linux
+
+          - name: iOS
+            os: "macos-11"
+            api-platform: ios
+            scons-platform: ios
+            fmod-executable-suffix: ios-installer.dmg
+            flags: arch=arm64 ios_min_version=11.0
+            artifact-name: ios
+
+          - name: Android
+            os: "ubuntu-20.04"
+            api-platform: android
+            scons-platform: android
+            fmod-executable-suffix: android.tar.gz
+            flags: ANDROID_NDK_ROOT=$ANDROID_NDK_LATEST_HOME arch=arm64
+            artifact-name: android-lib
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: godot-cpp library cache
+        id: cache-godot-lib
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-godot-lib
+        with:
+          path: addons/FMOD/native/godot-cpp/bin
+          key: ${{ matrix.api-platform }}-build-${{ env.cache-name }}-${{ hashFiles('**/addons/FMOD/native/godot-cpp/**') }}
+
+      - name: FMOD library cache
+        id: cache-fmod-lib
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-fmod-lib
+        with:
+          path: addons/FMOD/native/fmodapi
+          key: ${{ matrix.api-platform }}-build-${{ env.cache-name }}-${{ env.FMOD_VERSION }}
+
+      - name: Set up Python 3.x
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
+          architecture: "x64"
+
+      - name: Set up dependencies (Python, SCons)
+        run: python -m pip install scons requests
+
+      - name: Download FMOD API (Windows)
+        if: runner.os == 'Windows' && steps.cache-fmod-lib.outputs.cache-hit != 'true'
+        run: |
+          cd addons/FMOD/native/tools
+          python download_fmod.py ${{ secrets.FMOD_USERNAME }} ${{ secrets.FMOD_PASSWORD }} api ${{ matrix.api-platform }} ${{ env.FMOD_VERSION }}
+          7z x fmodstudioapi${{env.FMOD_VERSION}}${{matrix.fmod-executable-suffix}} -o${{ github.workspace }}\addons\FMOD\native\fmodapi
+          cd ../../../../
+
+      - name: Download FMOD API (macOS)
+        if: runner.os == 'MacOS' && matrix.api-platform == 'mac' && steps.cache-fmod-lib.outputs.cache-hit != 'true'
+        run: |
+          cd addons/FMOD/native/tools
+          python download_fmod.py ${{ secrets.FMOD_USERNAME }} ${{ secrets.FMOD_PASSWORD }} api ${{ matrix.api-platform }} ${{ env.FMOD_VERSION }}
+          mkdir -p ../fmodapi        
+          hdiutil mount fmodstudioapi${{env.FMOD_VERSION}}${{matrix.fmod-executable-suffix}}
+          cp -R "/Volumes/FMOD Programmers API Mac/FMOD Programmers API/"* ../fmodapi
+          cd ../../../../
+
+      - name: Download FMOD API (Linux)
+        if: runner.os == 'Linux' && matrix.api-platform == 'linux' && steps.cache-fmod-lib.outputs.cache-hit != 'true'
+        run: |
+          cd addons/FMOD/native/tools
+          python download_fmod.py ${{ secrets.FMOD_USERNAME }} ${{ secrets.FMOD_PASSWORD }} api ${{ matrix.api-platform }} ${{ env.FMOD_VERSION }}
+          mkdir -p ../fmodapi
+          tar -zxvf fmodstudioapi${{env.FMOD_VERSION}}${{matrix.fmod-executable-suffix}} --strip-components=1 -C ../fmodapi
+          cd ../../../../
+
+      - name: Download FMOD API (iOS)
+        if: runner.os == 'MacOS' && matrix.api-platform == 'ios' && steps.cache-fmod-lib.outputs.cache-hit != 'true'
+        run: |
+          cd addons/FMOD/native/tools
+          python download_fmod.py ${{ secrets.FMOD_USERNAME }} ${{ secrets.FMOD_PASSWORD }} api ${{ matrix.api-platform }} ${{ env.FMOD_VERSION }}
+          mkdir -p ../fmodapi        
+          hdiutil mount fmodstudioapi${{env.FMOD_VERSION}}${{matrix.fmod-executable-suffix}}
+          cp -R "/Volumes/FMOD Programmers API iOS/FMOD Programmers API/"* ../fmodapi
+          cd ../../../../
+
+      - name: Download FMOD API (Android)
+        if: runner.os == 'Linux' && matrix.api-platform == 'android' && steps.cache-fmod-lib.outputs.cache-hit != 'true'
+        run: |
+          cd addons/FMOD/native/tools
+          python download_fmod.py ${{ secrets.FMOD_USERNAME }} ${{ secrets.FMOD_PASSWORD }} api ${{ matrix.api-platform }} ${{ env.FMOD_VERSION }}
+          mkdir -p ../fmodapi
+          tar -zxvf fmodstudioapi${{env.FMOD_VERSION}}${{matrix.fmod-executable-suffix}} --strip-components=1 -C ../fmodapi
+          cd ../../../../
+
+      - name: Compile Debug library
+        shell: bash
+        run: |
+          cd addons/FMOD/native
+          scons platform=${{ matrix.scons-platform }} target=template_debug dev_build=yes generate_bindings=yes fmod_api=fmodapi -j6 ${{ matrix.flags }} ${{ steps.cache-godot-lib.outputs.cache-hit == 'true' && 'build_library=no' || ''}}
+          cd ../../../
+
+      - name: Compile Release library
+        shell: bash
+        run: |
+          cd addons/FMOD/native
+          scons platform=${{ matrix.scons-platform }} target=template_release generate_bindings=yes fmod_api=fmodapi -j6 ${{ matrix.flags }} ${{ steps.cache-godot-lib.outputs.cache-hit == 'true' && 'build_library=no' || ''}}
+          cd ../../../
+
+      - name: Upload libs
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.artifact-name }}
+          path: addons/FMOD/native/lib
+
+  android-plugin:
+    runs-on: "ubuntu-20.04"
+    name: Android Plugin
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: FMOD library cache
+        id: cache-fmod-lib
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-fmod-lib
+        with:
+          path: fmodapi
+          key: android-build-${{ env.cache-name }}-${{ env.FMOD_VERSION }}
+
+      - name: Godot library cache
+        id: godot-android-lib
+        uses: actions/cache@v3
+        env:
+          cache-name: godot-android-lib
+        with:
+          path: addons/FMOD/native/tools/fmod-android-plugin/godot-lib
+          key: ${{ env.cache-name }}-${{ env.GODOT_ENGINE_VERSION }}-${{ env.GODOT_ENGINE_STAGE }}
+
+      - name: Set up JDK 11 for x64
+        uses: actions/setup-java@v3
+        with:
+          java-version: "11"
+          distribution: "adopt"
+          architecture: x64
+
+      - name: Download FMOD library
+        if: steps.cache-fmod-lib.outputs.cache-hit != 'true'
+        env:
+          FMOD_SUFFIX: android.tar.gz
+        run: |
+          cd addons/FMOD/native/tools
+          python download_fmod.py ${{ secrets.FMOD_USERNAME }} ${{ secrets.FMOD_PASSWORD }} api android ${{ env.FMOD_VERSION }}
+          mkdir -p ../../../../fmodapi
+          tar -zxvf fmodstudioapi${{env.FMOD_VERSION}}${{env.FMOD_SUFFIX}} --strip-components=1 -C ../../../../fmodapi
+          cd ../../../../
+
+      - name: Copy essential files
+        run: |
+          mkdir android/plugins/lib
+          cp fmodapi/api/core/lib/fmod.jar android/plugins/lib
+          cp fmodapi/api/core/lib/fmod.jar addons/FMOD/native/tools/fmod-android-plugin/fmod-android-plugin/libs
+
+      - name: Download Godot library
+        if: steps.godot-android-lib.outputs.cache-hit != 'true'
+        run: |
+          cd addons/FMOD/native/tools/fmod-android-plugin/godot-lib
+          if [ "${{ env.GODOT_ENGINE_STAGE }}" = "stable" ]; then
+            curl -LJ https://downloads.tuxfamily.org/godotengine/${{ env.GODOT_ENGINE_VERSION }}/godot-lib.${{ env.GODOT_ENGINE_VERSION }}.${{ env.GODOT_ENGINE_STAGE }}.template_release.aar -o godot-lib.aar
+          else
+            curl -LJ https://downloads.tuxfamily.org/godotengine/${{ env.GODOT_ENGINE_VERSION }}/${{ env.GODOT_ENGINE_STAGE }}/godot-lib.${{ env.GODOT_ENGINE_VERSION }}.${{ env.GODOT_ENGINE_STAGE }}.template_release.aar -o godot-lib.aar
+          fi
+          cd ../../../../../../
+
+      - name: Build Android plugin
+        run: |
+          cd addons/FMOD/native/tools/fmod-android-plugin/
+          ./gradlew build
+          cd ../../../../../
+          cp addons/FMOD/native/tools/fmod-android-plugin/fmod-android-plugin/build/outputs/aar/fmod-android-plugin-release.aar android/plugins
+
+      - name: Upload Android Plugin
+        uses: actions/upload-artifact@v3
+        with:
+          name: android-plugin
+          path: android
+
+  upload-addon:
+    runs-on: "ubuntu-20.04"
+    needs: [build-all, android-plugin]
+    name: Addon
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Download all libs
+        uses: actions/download-artifact@v3
+
+      - name: Assemble all artifacts
+        run: |
+          ls
+          shopt -s dotglob
+          if [ ! -d "addons/FMOD/native/lib" ]; then
+          mkdir -p addons/FMOD/native/lib
+          fi
+          if [ -d windows ]; then
+            mv windows/* addons/FMOD/native/lib/
+            rm -r windows
+          fi
+          if [ -d macos ]; then
+            mv macos/* addons/FMOD/native/lib/
+            rm -r macos
+          fi
+          if [ -d linux ]; then
+            mv linux/* addons/FMOD/native/lib/
+            rm -r linux
+          fi
+          if [ -d android-lib ]; then
+            mv android-lib/* addons/FMOD/native/lib/
+            rm -r android-lib
+          fi
+          if [ -d ios ]; then
+            mv ios/* addons/FMOD/native/lib/
+            rm -r ios
+          fi
+          if [ -d android-plugin ]; then
+            mv android-plugin/plugins/fmod-android-plugin-release.aar android/plugins/
+            mkdir android/plugins/lib
+            mv android-plugin/plugins/lib/fmod.jar android/plugins/lib/
+            rm -r android-plugin
+          fi
+
+      - name: Clean up addon
+        run: |
+          rm -r ./addons/FMOD/native/godot-cpp
+          rm -r ./addons/FMOD/native/src
+          rm -r ./addons/FMOD/native/tools
+          rm ./addons/FMOD/native/SConstruct
+          rm ./LICENSE
+          rm ./README.md
+          rm .gitattributes
+          rm .gitignore
+          rm .gitmodules
+          rm -r ./addons/FMOD/tests
+          rm -r ./.git
+          rm -r ./.github
+
+      - name: Upload final artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: fmod-${{ env.FMOD_VERSION }}-for-godot-${{ env.GODOT_ENGINE_VERSION }}-${{ env.GODOT_ENGINE_STAGE }}-${{ env.INTEGRATION_VERSION }}
+          path: ./

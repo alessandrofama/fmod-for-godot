@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.02.00">
+	<object class="ParameterPreset" id="{081c8d27-4285-4807-b310-e7490c75793f}">
+		<property name="name">
+			<value>GlobalTestContinuousParameter</value>
+		</property>
+		<relationship name="folder">
+			<destination>{4f949467-17a8-4266-acc0-d3c4e91f972c}</destination>
+		</relationship>
+		<relationship name="parameter">
+			<destination>{61d5f8e0-2381-4d47-bec4-1502abfc495e}</destination>
+		</relationship>
+	</object>
+	<object class="GameParameter" id="{61d5f8e0-2381-4d47-bec4-1502abfc495e}">
+		<property name="isGlobal">
+			<value>true</value>
+		</property>
+		<property name="initialValue">
+			<value>0</value>
+		</property>
+		<property name="isExposedRecursively">
+			<value>false</value>
+		</property>
+	</object>
+</objects>

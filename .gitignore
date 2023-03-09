@@ -1,0 +1,23 @@
+# Godot 4+ specific ignores
+.godot/
+
+# Godot-specific ignores
+.import/
+export.cfg
+export_presets.cfg
+
+# Imported translations (automatically generated from CSV files)
+*.translation
+
+# Mono-specific ignores
+.mono/
+data_*/
+mono_crash.*.json
+
+.DS_Store
+addons/FMOD/native/src/**/*.obj
+addons/FMOD/native/src/**/*.os
+addons/FMOD/native/src/**/*.o
+addons/FMOD/tests/fmod_test_project/.user
+addons/FMOD/tests/fmod_test_project/.unsaved
+addons/FMOD/editor/cache/fmod_project_cache.tres

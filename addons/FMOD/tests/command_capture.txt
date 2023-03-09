@@ -1,0 +1,28 @@
+Playback::frame, 0
+Playback::version, 2, 131600
+#
+# FMOD v2.02.10 command capture
+#   System::setSoftwareChannels(numsoftwarechannels: 32)
+#   System::setDSPBufferSize(bufferlength: 512, numbuffers: 4)
+#   System::setSoftwareFormat(samplerate: 48000, speakermode: 3, numrawspeakers: 2)
+#   System::setAdvancedSettings(settings: {maxMPEGCodecs: 0, maxADPCMCodecs: 0, maxXMACodecs: 0, maxVorbisCodecs: 32, maxAT9Codecs: 0, maxFADPCMCodecs: 32, maxPCMCodecs: 0, maxOpusCodecs: 0
+#       ASIONumChannels: 0, vol0virtualvol: 0, defaultDecodeBufferSize: 400, geometryMaxFadeTime: 0,
+#       distanceFilterCenterFreq: 1500, reverb3Dinstance: 0, DSPBufferPoolSize: 8, resamplerMethod: 2, randomSeed: 665})
+#   Studio::System::setAdvancedSettings(settings: {commandqueuesize: 32768, handleinitialsize: 65536, studioupdateperiod: 20, idlesampledatapoolsize: 262144})
+#   Studio::System::initialize(maxchannels: 128, studioflags: 0x00000001, flags: 0x00030000)
+#
+Playback::frame, 0
+# Printing initial instance state
+System::loadBankFile, res://addons/FMOD/editor/tests/fmod_test_project/Build/Desktop/Master.bank, 0, 2097152
+Playback::loadBankFinished, {f261bff5-94ea-40c8-9495-bff474ece616}, 2097152, 0
+Bank::getEventListItem, 2097152, 0, {9ccfe520-0b85-4bb2-9325-d0919729aa54}, 2097664
+Bank::getBusListItem, 2097152, 0, {52187cb8-b8e1-4347-8012-00ed9bacdb47}, 2097920
+Bank::getVCAListItem, 2097152, 0, {bc51c1c2-2e0a-470d-9c46-60a47dc3de90}, 2098176
+System::loadBankFile, res://addons/FMOD/editor/tests/fmod_test_project/Build/Desktop/Master.strings.bank, 0, 2097408
+Playback::loadBankFinished, {6a7c9f21-e591-0c8a-12dc-350a851fe08e}, 2097408, 0
+System::setListenerAttributes, 0, {{2,3,5},{9,8,7},{0,0,-1},{0,1,0}}, {14,15,16}, false
+System::setParameterByName, GlobalTestDiscreteParameter, 5, false
+System::setParameterByName, GlobalTestLabeledParameter, 2, false
+# Finished printing initial instance state
+Playback::frame, 1024
+System::flushCommands

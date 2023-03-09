@@ -1,0 +1,11 @@
+[config]
+
+name="FmodAndroidPlugin"
+binary_type="local"
+binary="fmod-android-plugin-release.aar"
+
+[dependencies]
+
+local=["lib/fmod.jar"]
+remote=[]
+custom_maven_repos=[]
