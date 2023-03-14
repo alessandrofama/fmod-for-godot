@@ -1,0 +1,10 @@
+blank_issues_enabled: false
+
+contact_links:
+  - name: Discord
+    url: https://discord.com/invite/XQbvRdQcNn
+    about: Please join the Discord Server and ask for technical support.
+
+  - name: Tutorials
+    url: https://alessandrofama.com/tutorials/fmod/godot/
+    about: Please read the tutorials before reporting a bug.
