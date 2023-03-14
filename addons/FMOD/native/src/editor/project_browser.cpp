@@ -2,7 +2,8 @@
 
 using namespace godot;
 
-const Size2i WINDOW_SIZE = Size2i(1400, 1000);
+const Size2i BASE_WINDOW_SIZE = Size2i(750, 550);
+const int BASE_DPI = 96;
 const int STANDARD_MARGIN = 20;
 
 void ProjectBrowserTree::_bind_methods()
@@ -12,7 +13,6 @@ void ProjectBrowserTree::_bind_methods()
 
 void ProjectBrowserTree::initialize()
 {
-	set_custom_minimum_size(Size2i(0, 900));
 	set_allow_reselect(true);
 	set_allow_rmb_select(true);
 	set_h_size_flags(Control::SizeFlags::SIZE_EXPAND_FILL);
@@ -108,7 +108,7 @@ void DiscreteParameterControl::_bind_methods()
 	ClassDB::bind_method(D_METHOD("on_value_changed", "value"), &DiscreteParameterControl::on_value_changed);
 }
 
-void DiscreteParameterControl::initialize(const Ref<FmodTypes::FMOD_STUDIO_PARAMETER_DESCRIPTION>& desc)
+void DiscreteParameterControl::initialize(const Ref<FmodTypes::FMOD_STUDIO_PARAMETER_DESCRIPTION>& desc, Size2 size)
 {
 	set_min(desc->get_minimum());
 	set_max(desc->get_maximum());
@@ -117,7 +117,8 @@ void DiscreteParameterControl::initialize(const Ref<FmodTypes::FMOD_STUDIO_PARAM
 	set_step(1.0);
 	set_h_size_flags(Control::SizeFlags::SIZE_EXPAND_FILL);
 	set_v_size_flags(Control::SizeFlags::SIZE_SHRINK_CENTER);
-	set_custom_minimum_size(Size2i(300, 0));
+
+	set_custom_minimum_size(size);
 	parameter_name = desc->get_name();
 
 	connect("value_changed", Callable(this, "on_value_changed"));
@@ -133,11 +134,11 @@ void LabeledParameterControl::_bind_methods()
 	ClassDB::bind_method(D_METHOD("on_item_selected", "value"), &LabeledParameterControl::on_item_selected);
 }
 
-void LabeledParameterControl::initialize(const Ref<ParameterAsset>& parameter)
+void LabeledParameterControl::initialize(const Ref<ParameterAsset>& parameter, Size2 size)
 {
 	set_h_size_flags(Control::SizeFlags::SIZE_EXPAND_FILL);
 	set_v_size_flags(Control::SizeFlags::SIZE_SHRINK_CENTER);
-	set_custom_minimum_size(Size2i(300, 0));
+	set_custom_minimum_size(size);
 	for (int64_t j = 0; j < parameter->get_labels().size(); j++)
 	{
 		String parameter_label = parameter->get_labels()[j];
@@ -159,7 +160,7 @@ void ContinuousParameterControl::_bind_methods()
 	ClassDB::bind_method(D_METHOD("on_value_changed", "value"), &ContinuousParameterControl::on_value_changed);
 }
 
-void ContinuousParameterControl::initialize(const Ref<FmodTypes::FMOD_STUDIO_PARAMETER_DESCRIPTION>& desc)
+void ContinuousParameterControl::initialize(const Ref<FmodTypes::FMOD_STUDIO_PARAMETER_DESCRIPTION>& desc, Size2 size)
 {
 	set_min(desc->get_minimum());
 	set_max(desc->get_maximum());
@@ -168,7 +169,7 @@ void ContinuousParameterControl::initialize(const Ref<FmodTypes::FMOD_STUDIO_PAR
 	set_step(0.01);
 	set_h_size_flags(Control::SizeFlags::SIZE_FILL | Control::SizeFlags::SIZE_EXPAND);
 	set_v_size_flags(Control::SizeFlags::SIZE_SHRINK_CENTER);
-	set_custom_minimum_size(Size2i(300, 0));
+	set_custom_minimum_size(size);
 	parameter_name = desc->get_name();
 	connect("value_changed", Callable(this, "on_value_changed"));
 }
@@ -197,6 +198,7 @@ void ProjectBrowserWindow::_bind_methods()
 	ClassDB::bind_method(D_METHOD("on_banks_loaded"), &ProjectBrowserWindow::on_banks_loaded);
 	ClassDB::bind_method(D_METHOD("on_event_popup_id_pressed", "id"), &ProjectBrowserWindow::on_event_popup_id_pressed);
 	ClassDB::bind_method(D_METHOD("on_bank_popup_id_pressed", "id"), &ProjectBrowserWindow::on_bank_popup_id_pressed);
+	ClassDB::bind_method(D_METHOD("set_editor_scale", "scale"), &ProjectBrowserWindow::set_editor_scale);
 	ClassDB::bind_method(D_METHOD("initialize"), &ProjectBrowserWindow::initialize);
 }
 
@@ -407,14 +409,16 @@ void ProjectBrowserWindow::on_cell_selected()
 		parameter_label->set_vertical_alignment(VerticalAlignment::VERTICAL_ALIGNMENT_CENTER);
 		parameter_label->set_h_size_flags(Control::SizeFlags::SIZE_SHRINK_BEGIN);
 		parameter_label->set_v_size_flags(Control::SizeFlags::SIZE_SHRINK_CENTER);
-		parameter_label->set_custom_minimum_size(Size2i(200, 0));
+
+		Size2 size(get_size().x / 5, 0);
+		parameter_label->set_custom_minimum_size(size);
 		parameter_hbox_container->add_child(parameter_label);
 		parameter_label->set_owner(parameter_hbox_container);
 
 		if ((flags & FMOD_STUDIO_PARAMETER_DISCRETE) && !(flags & FMOD_STUDIO_PARAMETER_LABELED))
 		{
 			DiscreteParameterControl* spinbox = memnew(DiscreteParameterControl);
-			spinbox->initialize(parameter_description);
+			spinbox->initialize(parameter_description, Size2(get_size().x / 5, 0));
 
 			parameter_hbox_container->add_child(spinbox);
 			spinbox->set_owner(parameter_hbox_container);
@@ -422,7 +426,7 @@ void ProjectBrowserWindow::on_cell_selected()
 		else if (flags & FMOD_STUDIO_PARAMETER_LABELED)
 		{
 			LabeledParameterControl* option_button = memnew(LabeledParameterControl);
-			option_button->initialize(parameter);
+			option_button->initialize(parameter, Size2(get_size().x / 5, 0));
 
 			parameter_hbox_container->add_child(option_button);
 			option_button->set_owner(parameter_hbox_container);
@@ -430,7 +434,7 @@ void ProjectBrowserWindow::on_cell_selected()
 		else
 		{
 			ContinuousParameterControl* spin_slider = memnew(ContinuousParameterControl);
-			spin_slider->initialize(parameter_description);
+			spin_slider->initialize(parameter_description, Size2(get_size().x / 5, 0));
 
 			parameter_hbox_container->add_child(spin_slider);
 			spin_slider->set_owner(parameter_hbox_container);
@@ -655,6 +659,11 @@ void ProjectBrowserWindow::_input(const Ref<InputEvent>& event)
 	}
 }
 
+void ProjectBrowserWindow::set_editor_scale(float scale)
+{
+	editor_scale = scale;
+}
+
 void ProjectBrowserWindow::initialize()
 {
 	set_initial_position(Window::WindowInitialPosition::WINDOW_INITIAL_POSITION_CENTER_MAIN_WINDOW_SCREEN);
@@ -668,6 +677,22 @@ void ProjectBrowserWindow::initialize()
 	connect("size_changed", Callable(this, "on_size_changed"));
 	FMODStudioEditorModule::get_singleton()->connect("banks_loaded", Callable(this, "on_banks_loaded"));
 
+	Size2 window_size = BASE_WINDOW_SIZE;
+	DisplayServer* display_server = DisplayServer::get_singleton();
+
+	if (display_server)
+	{
+		int32_t dpi = display_server->screen_get_dpi();
+
+		if (dpi != 72)
+		{
+			dpi_scaling_factor = dpi / BASE_DPI;
+			window_size *= dpi_scaling_factor;
+		}
+
+		window_size *= editor_scale;
+	}
+
 	// note(alex): The colors of the Window elements (buttons etc.) are almost identical to the background, which make them very hard to distinguish.
 	// We are adding a Panel here to darken the background of the Window a bit. Investigate what is going wrong here.
 	panel = memnew(Panel);
@@ -677,8 +702,8 @@ void ProjectBrowserWindow::initialize()
 	panel->set_owner(this);
 
 	parent_vbox_container = memnew(VBoxContainer);
-	parent_vbox_container->set_size(WINDOW_SIZE);
-	parent_vbox_container->set_custom_minimum_size(WINDOW_SIZE);
+	parent_vbox_container->set_size(window_size);
+	parent_vbox_container->set_custom_minimum_size(window_size);
 	this->add_child(parent_vbox_container);
 	parent_vbox_container->set_owner(this);
 

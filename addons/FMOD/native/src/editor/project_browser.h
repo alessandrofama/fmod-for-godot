@@ -81,7 +81,7 @@ protected:
 
 public:
 	String parameter_name;
-	void initialize(const Ref<FmodTypes::FMOD_STUDIO_PARAMETER_DESCRIPTION>& desc);
+	void initialize(const Ref<FmodTypes::FMOD_STUDIO_PARAMETER_DESCRIPTION>& desc, Size2 size);
 	void on_value_changed(float value);
 };
 
@@ -94,7 +94,7 @@ protected:
 
 public:
 	String parameter_name;
-	void initialize(const Ref<ParameterAsset>& parameter);
+	void initialize(const Ref<ParameterAsset>& parameter, Size2 size);
 	void on_item_selected(int value);
 };
 
@@ -107,7 +107,7 @@ protected:
 
 public:
 	String parameter_name;
-	void initialize(const Ref<FmodTypes::FMOD_STUDIO_PARAMETER_DESCRIPTION>& desc);
+	void initialize(const Ref<FmodTypes::FMOD_STUDIO_PARAMETER_DESCRIPTION>& desc, Size2 size);
 	void on_value_changed(float value);
 };
 
@@ -176,6 +176,8 @@ private:
 	const String github_url = "https://github.com/alessandrofama/fmod-for-godot/";
 	const String tutorials_url = "https://alessandrofama.com/tutorials/fmod/godot/";
 	const String email_url = "mailto:me@alessandrofama.com?subject=FMOD%20for%20Godot%20Integration";
+	int dpi_scaling_factor{ 1 };
+	float editor_scale{ 1.0f };
 
 	void popup_menu(PopupType type, Vector2 pos);
 	bool update_filter(TreeItem* p_parent = nullptr, bool p_scroll_to_selected = false);
@@ -199,6 +201,7 @@ private:
 
 public:
 	void _input(const Ref<InputEvent>& event) override;
+	void set_editor_scale(float scale);
 	void initialize();
 };
 

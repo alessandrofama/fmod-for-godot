@@ -49,6 +49,8 @@ func _enter_tree():
 	# Add the Project Browser Button to the Container Toolbar
 	project_preview_button = ProjectBrowserPreviewButton.new()
 	project_preview_browser = ProjectBrowserWindow.new()
+	var editor_scale = get_editor_interface().get_editor_scale()
+	project_preview_browser.set_editor_scale(editor_scale)
 	project_preview_browser.initialize()
 	add_control_to_container(EditorPlugin.CONTAINER_TOOLBAR, project_preview_button)
 	if project_preview_button.get_child_count() == 0:
