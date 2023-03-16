@@ -64,6 +64,14 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Set godot-cpp commit hash env
+        shell: bash
+        run: |
+          cd addons/FMOD/native/godot-cpp
+          GODOT_CPP_COMMIT_HASH=$(git rev-parse HEAD)
+          echo "GODOT_CPP_COMMIT_HASH=$GODOT_CPP_COMMIT_HASH" >> $GITHUB_ENV
+          cd ../../../../
+
       - name: godot-cpp library cache
         id: cache-godot-lib
         uses: actions/cache@v3
@@ -71,7 +79,7 @@ jobs:
           cache-name: cache-godot-lib
         with:
           path: addons/FMOD/native/godot-cpp/bin
-          key: ${{ matrix.api-platform }}-build-${{ env.cache-name }}-${{ hashFiles('**/addons/FMOD/native/godot-cpp/**') }}
+          key: ${{ matrix.api-platform }}-build-${{ env.cache-name }}-${{ env.GODOT_CPP_COMMIT_HASH }}
 
       - name: FMOD library cache
         id: cache-fmod-lib
