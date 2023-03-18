@@ -149,6 +149,7 @@ jobs:
         shell: bash
         run: |
           cd addons/FMOD/native
+          mkdir -p godot-cpp/bin
           scons platform=${{ matrix.scons-platform }} target=template_debug dev_build=yes generate_bindings=yes fmod_api=fmodapi -j6 ${{ matrix.flags }} ${{ steps.cache-godot-lib.outputs.cache-hit == 'true' && 'build_library=no' || ''}}
           cd ../../../
 
