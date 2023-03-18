@@ -10,22 +10,13 @@ body:
 
 - type: input
   attributes:
-    label: Godot version
+    label: FMOD for Godot version
     description: >
-      Specify the Godot Engine version you are using
-    placeholder: 4.0.stable
+      Specify the FMOD for Godot version you are using
+    placeholder: fmod-20212-for-godot-4.0-stable-1.0-alpha-1
   validations:
     required: true
     
-- type: input
-  attributes:
-    label: FMOD version
-    description: >
-      Specify the FMOD version you are using
-    placeholder: 2.02.12
-  validations:
-    required: true
-
 - type: input
   attributes:
     label: System information
