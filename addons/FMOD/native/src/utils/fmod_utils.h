@@ -155,10 +155,10 @@ static inline void transform3d_to_fmod_vector(const Transform3D& in_transform, F
 			vector3_to_fmod_vector(in_transform.get_origin(), out_vector);
 			break;
 		case VectorType::FORWARD:
-			vector3_to_fmod_vector(in_transform.get_basis()[2].normalized(), out_vector);
+			vector3_to_fmod_vector(-in_transform.get_basis().get_column(2).normalized(), out_vector);
 			break;
 		case VectorType::UP:
-			vector3_to_fmod_vector(in_transform.get_basis()[1].normalized(), out_vector);
+			vector3_to_fmod_vector(in_transform.get_basis().get_column(1).normalized(), out_vector);
 			break;
 		case VectorType::VELOCITY:
 			if (physicsbody3d)
