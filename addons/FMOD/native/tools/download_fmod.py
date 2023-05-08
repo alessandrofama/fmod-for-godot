@@ -53,7 +53,7 @@ fmodlink = "https://www.fmod.com/api-login"
 if platform == "windows":
     if type == "api":
         filename = f"fmodstudioapi{fmod_version}win-installer.exe"
-        downloadlink = f"https://www.fmod.com/api-get-download-link?path=files/fmodstudio/api/Win/&filename={filename}&user_id="
+        downloadlink = f"https://www.fmod.com/api-get-download-link?path=files/fmodstudio/api/Windows/&filename={filename}&user_id="
     elif type == "studio":
         filename = f"fmodstudio{fmod_version}win64-installer.exe"
         downloadlink = f"https://www.fmod.com/api-get-download-link?path=files/fmodstudio/tool/Win64/&filename={filename}&user_id="
