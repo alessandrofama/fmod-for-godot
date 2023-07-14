@@ -109,7 +109,7 @@ extern "C"
 {
 	// Initialization.
 
-	GDExtensionBool GDE_EXPORT fmod_library_init(const GDExtensionInterface* p_interface,
+	GDExtensionBool GDE_EXPORT fmod_library_init(GDExtensionInterfaceGetProcAddress p_interface,
 			const GDExtensionClassLibraryPtr p_library,
 			GDExtensionInitialization* r_initialization)
 	{
