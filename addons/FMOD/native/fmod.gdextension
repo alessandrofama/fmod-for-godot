@@ -1,5 +1,6 @@
 [configuration]
 entry_symbol = "fmod_library_init"
+compatibility_minimum = 4.1
 
 [libraries]
 windows.editor = "res://addons/FMOD/native/lib/win64/release/libfmod.windows.template_release.dll"
