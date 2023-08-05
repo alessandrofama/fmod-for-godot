@@ -313,7 +313,7 @@ Dictionary StudioSystem::get_parameter_by_id(const Ref<FmodTypes::FMOD_STUDIO_PA
 }
 
 bool StudioSystem::set_parameter_by_id(const Ref<FmodTypes::FMOD_STUDIO_PARAMETER_ID>& parameter_id, float value,
-		bool ignore_seek_speed) const
+		bool ignore_seek_speed = false) const
 {
 	FMOD_STUDIO_PARAMETER_ID id{};
 	parameter_id->get_parameter_id(id);
@@ -322,7 +322,7 @@ bool StudioSystem::set_parameter_by_id(const Ref<FmodTypes::FMOD_STUDIO_PARAMETE
 }
 
 bool StudioSystem::set_parameter_by_id_with_label(const Ref<FmodTypes::FMOD_STUDIO_PARAMETER_ID>& parameter_id,
-		const String& label, bool ignore_seek_speed) const
+		const String& label, bool ignore_seek_speed = false) const
 {
 	FMOD_STUDIO_PARAMETER_ID id{};
 	parameter_id->get_parameter_id(id);
@@ -331,7 +331,7 @@ bool StudioSystem::set_parameter_by_id_with_label(const Ref<FmodTypes::FMOD_STUD
 }
 
 bool StudioSystem::set_parameters_by_ids(const Array& parameter_ids, const Array& values, int count,
-		bool ignore_seek_speed) const
+		bool ignore_seek_speed = false) const
 {
 	std::unique_ptr<FMOD_STUDIO_PARAMETER_ID[]> ids = std::make_unique<FMOD_STUDIO_PARAMETER_ID[]>(count);
 	std::unique_ptr<float[]> parameter_values = std::make_unique<float[]>(count);
@@ -364,13 +364,13 @@ Dictionary StudioSystem::get_parameter_by_name(const String& name) const
 	return result;
 }
 
-bool StudioSystem::set_parameter_by_name(const String& name, float value, bool ignore_seek_speed) const
+bool StudioSystem::set_parameter_by_name(const String& name, float value, bool ignore_seek_speed = false) const
 {
 	return ERROR_CHECK(studio_system->setParameterByName(name.utf8().get_data(), value, ignore_seek_speed));
 }
 
 bool StudioSystem::set_parameter_by_name_with_label(const String& name, const String& label,
-		bool ignore_seek_speed) const
+		bool ignore_seek_speed = false) const
 {
 	return ERROR_CHECK(
 			studio_system->setParameterByNameWithLabel(name.utf8().get_data(), label.utf8().get_data(), ignore_seek_speed));
@@ -1541,7 +1541,7 @@ Dictionary EventInstance::get_parameter_by_id(const Ref<FmodTypes::FMOD_STUDIO_P
 }
 
 bool EventInstance::set_parameter_by_id(const Ref<FmodTypes::FMOD_STUDIO_PARAMETER_ID>& parameter_id, float value,
-		bool ignore_seek_speed) const
+		bool ignore_seek_speed = false) const
 {
 	FMOD_STUDIO_PARAMETER_ID id;
 	parameter_id->get_parameter_id(id);
@@ -1550,7 +1550,7 @@ bool EventInstance::set_parameter_by_id(const Ref<FmodTypes::FMOD_STUDIO_PARAMET
 }
 
 bool EventInstance::set_parameter_by_id_with_label(const Ref<FmodTypes::FMOD_STUDIO_PARAMETER_ID>& parameter_id,
-		const String& label, bool ignore_seek_speed)
+		const String& label, bool ignore_seek_speed = false)
 {
 	FMOD_STUDIO_PARAMETER_ID id;
 	parameter_id->get_parameter_id(id);
@@ -1558,7 +1558,7 @@ bool EventInstance::set_parameter_by_id_with_label(const Ref<FmodTypes::FMOD_STU
 	return ERROR_CHECK(event_instance->setParameterByIDWithLabel(id, label.utf8().get_data(), ignore_seek_speed));
 }
 
-bool EventInstance::set_parameters_by_ids(const Array ids, const Array values, int count, bool ignore_seek_speed) const
+bool EventInstance::set_parameters_by_ids(const Array ids, const Array values, int count, bool ignore_seek_speed = false) const
 {
 	std::unique_ptr<FMOD_STUDIO_PARAMETER_ID[]> parameter_ids = std::make_unique<FMOD_STUDIO_PARAMETER_ID[]>(count);
 	std::unique_ptr<float[]> parameter_values = std::make_unique<float[]>(count);
@@ -1594,12 +1594,12 @@ Dictionary EventInstance::get_parameter_by_name(const String& name) const
 	return result;
 }
 
-bool EventInstance::set_parameter_by_name(const String& name, float value, bool ignore_seek_speed) const
+bool EventInstance::set_parameter_by_name(const String& name, float value, bool ignore_seek_speed = false) const
 {
 	return ERROR_CHECK(event_instance->setParameterByName(name.utf8().get_data(), value, ignore_seek_speed));
 }
 
-bool EventInstance::set_parameter_by_name_with_label(const String& name, const String& label, bool ignore_seek_speed)
+bool EventInstance::set_parameter_by_name_with_label(const String& name, const String& label, bool ignore_seek_speed = false)
 {
 	return ERROR_CHECK(event_instance->setParameterByNameWithLabel(name.utf8().get_data(), label.utf8().get_data(),
 			ignore_seek_speed));
