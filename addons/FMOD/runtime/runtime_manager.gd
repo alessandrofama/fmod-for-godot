@@ -30,12 +30,12 @@ func _notification(what: int) -> void:
 
 
 func path_to_guid(path: String) -> String:
-	return RuntimeManager.studio_system.lookup_id(path)
+	return FmodManager.studio_system.lookup_id(path)
 
 
 func get_event_description(event_asset: EventAsset) -> EventDescription:
 	var description: EventDescription
-	description = RuntimeManager.studio_system.get_event_by_id(event_asset.guid)
+	description = FmodManager.studio_system.get_event_by_id(event_asset.guid)
 	return description
 
 
@@ -47,7 +47,7 @@ func get_event_description_path(event_path: String) -> EventDescription:
 
 func get_event_description_id(guid: String) -> EventDescription:
 	var description: EventDescription
-	description = RuntimeManager.studio_system.get_event_by_id(guid)
+	description = FmodManager.studio_system.get_event_by_id(guid)
 	return description
 
 
@@ -124,7 +124,7 @@ func play_one_shot_id(guid: String, position = null) -> void:
 
 
 func attach_instance_to_node(instance: EventInstance, node, physicsbody = null) -> void:
-	var runtime_manager = RuntimeManager
+	var runtime_manager = FmodManager
 	var attached_instance: AttachedInstance
 	for i in runtime_manager.attached_instances.size():
 		if runtime_manager.attached_instances[i].instance == instance:
@@ -141,7 +141,7 @@ func attach_instance_to_node(instance: EventInstance, node, physicsbody = null) 
 
 
 func detach_instance_from_node(instance: EventInstance) -> void:
-	var runtime_manager = RuntimeManager
+	var runtime_manager = FmodManager
 	for i in runtime_manager.attached_instances.size():
 		if runtime_manager.attached_instances[i].instance == instance:
 			runtime_manager.attached_instances[i] = runtime_manager.attached_instances[
