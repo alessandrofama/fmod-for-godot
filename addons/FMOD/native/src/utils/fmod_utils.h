@@ -28,11 +28,10 @@ static bool error_check(const FMOD_RESULT result, const char* function, const ch
 {
 	if (result != FMOD_OK)
 	{
-#ifdef FMOD_DEBUG
 		String warning_message = "[WARNING]: " + String(FMOD_ErrorString(result)) + " " + function + " in " + file +
 				":" + String::num(line);
 		UtilityFunctions::push_warning(warning_message);
-#endif
+
 		return false;
 	}
 
