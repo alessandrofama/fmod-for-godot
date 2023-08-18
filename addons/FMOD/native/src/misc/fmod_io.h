@@ -27,6 +27,8 @@ public:
 		if (FileAccess::get_open_error() != Error::OK)
 		{
 			*filesize = 0;
+			file->close();
+			memfree(file_handle);
 			return FMOD_ERR_FILE_NOTFOUND;
 		}
 
@@ -44,7 +46,9 @@ public:
 			return result;
 		}
 
-		memfree(handle);
+		FileHandle* const file_handle = static_cast<FileHandle*>(handle);
+		file_handle->file->close();
+		memfree(file_handle);
 
 		result = FMOD_OK;
 		return result;
