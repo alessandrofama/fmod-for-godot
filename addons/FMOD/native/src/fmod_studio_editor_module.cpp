@@ -103,11 +103,8 @@ void FMODStudioEditorModule::_bind_methods()
 
 	ClassDB::bind_method(D_METHOD("set_is_initialized", "initialized"), &FMODStudioEditorModule::set_is_initialized);
 	ClassDB::bind_method(D_METHOD("get_is_initialized"), &FMODStudioEditorModule::get_is_initialized);
-	ClassDB::bind_method(D_METHOD("poll_banks_loading_state", "timer"), &FMODStudioEditorModule::poll_banks_loading_state);
 	ClassDB::bind_method(D_METHOD("have_all_banks_loaded"), &FMODStudioEditorModule::get_all_banks_loaded);
 
-	ADD_SIGNAL(MethodInfo("banks_loading"));
-	ADD_SIGNAL(MethodInfo("banks_loaded"));
 	ADD_SIGNAL(MethodInfo("cache_generated"));
 
 	BIND_ENUM_CONSTANT(FMOD_ICONTYPE_PROJECT);
@@ -388,6 +385,7 @@ Array FMODStudioEditorModule::get_bank_file_infos(const String& bank_path) const
 				bank_info["modified_time"] = file->get_modified_time(bank_path + String("/") + file_name);
 
 				files.push_back(bank_info);
+				file->close();
 			}
 
 			file_name = dir->get_next();
@@ -490,7 +488,7 @@ void FMODStudioEditorModule::load_all_banks()
 	String strings_bank_path = strings_bank_info["file_path"];
 
 	FMOD::Studio::Bank* strings_bank = nullptr;
-	studio_system->loadBankFile(strings_bank_path.utf8().get_data(), FMOD_STUDIO_LOAD_BANK_NORMAL, &strings_bank);
+	ERROR_CHECK(studio_system->loadBankFile(strings_bank_path.utf8().get_data(), FMOD_STUDIO_LOAD_BANK_NORMAL, &strings_bank));
 
 	for (int64_t i = 0; i < bank_files_infos.size(); i++)
 	{
@@ -501,25 +499,30 @@ void FMODStudioEditorModule::load_all_banks()
 		if (file_path.contains(".strings"))
 		{
 			Ref<BankAsset> strings_bank_asset = get_bank_reference(bank_files_infos[i]);
-			bank_loading_check.emplace(strings_bank, strings_bank_asset);
+			strings_bank_asset->set_bank_ref(strings_bank);
+			bank_refs.append(strings_bank_asset);
 			continue;
 		}
 
 		FMOD::Studio::Bank* bank = nullptr;
-		studio_system->loadBankFile(file_path.utf8().get_data(), FMOD_STUDIO_LOAD_BANK_NONBLOCKING, &bank);
+		ERROR_CHECK(studio_system->loadBankFile(file_path.utf8().get_data(), FMOD_STUDIO_LOAD_BANK_NORMAL, &bank));
 		Ref<BankAsset> bank_asset = get_bank_reference(bank_files_infos[i]);
-		bank_loading_check.emplace(bank, bank_asset);
+		bank_asset->set_bank_ref(bank);
+		bank_refs.append(bank_asset);
 	}
 
-	emit_signal("banks_loading");
+	banks_loaded = true;
+	UtilityFunctions::print("[FMOD] Loaded editor banks.");
 }
 
 void FMODStudioEditorModule::unload_all_banks()
 {
 	studio_system->unloadAll();
-	studio_system->update();
 	studio_system->flushCommands();
+	studio_system->update();
 	bank_refs.clear();
+	banks_loaded = false;
+	UtilityFunctions::print("[FMOD] Unloaded editor banks.");
 }
 
 void FMODStudioEditorModule::create_icon(const String& icon_path, FMODIconType icon_type)
@@ -1151,62 +1154,6 @@ void FMODStudioEditorModule::set_is_initialized(bool initialized)
 bool FMODStudioEditorModule::get_is_initialized() const
 {
 	return is_initialized;
-}
-
-void FMODStudioEditorModule::poll_banks_loading_state(Timer* timer)
-{
-	static int retries = 0;
-	const int max_retries = 10;
-
-	if (!banks_loaded)
-	{
-		for (auto it = bank_loading_check.cbegin(); it != bank_loading_check.cend();)
-		{
-			FMOD_STUDIO_LOADING_STATE state = FMOD_STUDIO_LOADING_STATE_UNLOADED;
-			ERROR_CHECK(it->first->getLoadingState(&state));
-			if (state == FMOD_STUDIO_LOADING_STATE_LOADED)
-			{
-				Ref<BankAsset> asset = it->second;
-				asset->set_bank_ref(it->first);
-				bank_refs.append(asset);
-				bank_loading_check.erase(it++);
-			}
-			else
-			{
-				studio_system->update();
-				++it;
-			}
-		}
-
-		if (bank_loading_check.size() == 0)
-		{
-			banks_loaded = true;
-
-			if (timer)
-			{
-				timer->stop();
-				timer->queue_free();
-			}
-
-			emit_signal("banks_loaded");
-			UtilityFunctions::print("[FMOD] Loaded Editor Banks");
-		}
-
-		if (retries == max_retries)
-		{
-			if (timer)
-			{
-				timer->stop();
-				timer->queue_free();
-				retries = 0;
-
-				UtilityFunctions::push_warning("[FMOD] Failed to load editor banks. Please verify that the banks path location in the Project Settings is correct. Refresh the project afterwards.");
-				return;
-			}
-		}
-
-		++retries;
-	}
 }
 
 bool FMODStudioEditorModule::get_all_banks_loaded() const

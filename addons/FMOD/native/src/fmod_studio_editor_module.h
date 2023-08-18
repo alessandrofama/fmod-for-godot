@@ -136,7 +136,6 @@ public:
 	void set_is_initialized(bool initialized);
 	bool get_is_initialized() const;
 
-	void poll_banks_loading_state(Timer* timer);
 	bool get_all_banks_loaded() const;
 };
 

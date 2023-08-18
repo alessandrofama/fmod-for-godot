@@ -195,7 +195,6 @@ private:
 	void on_play_button_pressed();
 	void on_stop_button_pressed();
 	void on_checkbox_toggled(bool button_pressed);
-	void on_banks_loaded();
 	void on_event_popup_id_pressed(int32_t id);
 	void on_bank_popup_id_pressed(int32_t id);
 

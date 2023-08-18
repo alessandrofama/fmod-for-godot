@@ -62,21 +62,20 @@ void StudioEventEmitter3DGizmoPlugin::_redraw(const Ref<EditorNode3DGizmo>& gizm
 		return;
 	}
 
-	FMOD::Studio::EventDescription* event = event_asset->get_event_description();
+	
 
-	bool is_3d{};
-	event->is3D(&is_3d);
+	bool is_3d = event_asset->get_3d();
 
 	if (!is_3d)
 	{
 		return;
 	}
 
-	float r_max{};
+	float r_max{};	
 	float r_min{};
-	float max_distance{};
-	float min_distance{};
-	event->getMinMaxDistance(&min_distance, &max_distance);
+	float max_distance = event_asset->get_max_distance();
+	float min_distance = event_asset->get_min_distance();
+
 
 	if (max_distance > CMP_EPSILON)
 	{
