@@ -195,7 +195,6 @@ void ProjectBrowserWindow::_bind_methods()
 	ClassDB::bind_method(D_METHOD("on_play_button_pressed"), &ProjectBrowserWindow::on_play_button_pressed);
 	ClassDB::bind_method(D_METHOD("on_stop_button_pressed"), &ProjectBrowserWindow::on_stop_button_pressed);
 	ClassDB::bind_method(D_METHOD("on_checkbox_toggled", "button_pressed"), &ProjectBrowserWindow::on_checkbox_toggled);
-	ClassDB::bind_method(D_METHOD("on_banks_loaded"), &ProjectBrowserWindow::on_banks_loaded);
 	ClassDB::bind_method(D_METHOD("on_event_popup_id_pressed", "id"), &ProjectBrowserWindow::on_event_popup_id_pressed);
 	ClassDB::bind_method(D_METHOD("on_bank_popup_id_pressed", "id"), &ProjectBrowserWindow::on_bank_popup_id_pressed);
 	ClassDB::bind_method(D_METHOD("set_editor_scale", "scale"), &ProjectBrowserWindow::set_editor_scale);
@@ -304,11 +303,17 @@ void ProjectBrowserWindow::on_about_to_popup()
 			client->connect_client(this);
 		}
 	}
+
+	FMODStudioEditorModule::get_singleton()->init();
+	FMODStudioEditorModule::get_singleton()->load_all_banks();
+	project_tree->populate_browser();
 }
 
 void ProjectBrowserWindow::on_close_requested()
 {
 	set_visible(false);
+	FMODStudioEditorModule::get_singleton()->unload_all_banks();
+	FMODStudioEditorModule::get_singleton()->shutdown();
 }
 
 void ProjectBrowserWindow::on_size_changed()
@@ -446,6 +451,10 @@ void ProjectBrowserWindow::on_refresh_button_pressed()
 {
 	FMODStudioEditorModule::get_singleton()->unload_all_banks();
 	FMODStudioEditorModule::get_singleton()->load_all_banks();
+	Dictionary project_info = FMODStudioEditorModule::get_singleton()->get_project_info_from_banks();
+	FMODStudioEditorModule::get_singleton()->generate_cache(project_info);
+	FMODStudioEditorModule::get_singleton()->reload_cache_file();
+	project_tree->populate_browser();
 }
 
 void ProjectBrowserWindow::on_generate_guids_button_pressed()
@@ -514,19 +523,6 @@ void ProjectBrowserWindow::on_stop_button_pressed()
 void ProjectBrowserWindow::on_checkbox_toggled(bool button_pressed)
 {
 	allow_fadeout = button_pressed;
-}
-
-void ProjectBrowserWindow::on_banks_loaded()
-{
-	if (!FMODStudioEditorModule::get_singleton()->first_run)
-	{
-		Dictionary project_info = FMODStudioEditorModule::get_singleton()->get_project_info_from_banks();
-		FMODStudioEditorModule::get_singleton()->generate_cache(project_info);
-		FMODStudioEditorModule::get_singleton()->reload_cache_file();
-	}
-
-	FMODStudioEditorModule::get_singleton()->first_run = false;
-	project_tree->populate_browser();
 }
 
 void ProjectBrowserWindow::on_event_popup_id_pressed(int32_t id)
@@ -670,12 +666,11 @@ void ProjectBrowserWindow::initialize()
 	set_visible(false);
 	set_wrap_controls(true);
 	set_title("FMOD Project Browser");
-	set_exclusive(false);
+	set_exclusive(true);
 	set_transparent_background(true);
 	connect("about_to_popup", Callable(this, "on_about_to_popup"));
 	connect("close_requested", Callable(this, "on_close_requested"));
 	connect("size_changed", Callable(this, "on_size_changed"));
-	FMODStudioEditorModule::get_singleton()->connect("banks_loaded", Callable(this, "on_banks_loaded"));
 
 	Size2 window_size = BASE_WINDOW_SIZE;
 	DisplayServer* display_server = DisplayServer::get_singleton();
