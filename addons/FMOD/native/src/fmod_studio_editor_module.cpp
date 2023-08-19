@@ -505,7 +505,14 @@ void FMODStudioEditorModule::load_all_banks()
 		}
 
 		FMOD::Studio::Bank* bank = nullptr;
-		ERROR_CHECK(studio_system->loadBankFile(file_path.utf8().get_data(), FMOD_STUDIO_LOAD_BANK_NORMAL, &bank));
+		FMOD_RESULT result = studio_system->loadBankFile(file_path.utf8().get_data(), FMOD_STUDIO_LOAD_BANK_NORMAL, &bank);
+		{
+			if (result != FMOD_RESULT::FMOD_ERR_EVENT_ALREADY_LOADED)
+			{
+				ERROR_CHECK(result);
+			}
+		}
+
 		Ref<BankAsset> bank_asset = get_bank_reference(bank_files_infos[i]);
 		bank_asset->set_bank_ref(bank);
 		bank_refs.append(bank_asset);
