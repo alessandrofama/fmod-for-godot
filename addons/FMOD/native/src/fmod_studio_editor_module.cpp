@@ -623,6 +623,12 @@ Dictionary FMODStudioEditorModule::get_project_info_from_banks()
 		String guid = bank_asset->get_guid();
 		FMOD_GUID fmod_guid{};
 		FMOD_Studio_ParseID(guid.utf8().get_data(), &fmod_guid);
+
+		if (!studio_system)
+		{
+			break;
+		}
+
 		studio_system->getBankByID(&fmod_guid, &bank);
 
 		if (!FileAccess::file_exists(resource_dirs["banks"].operator godot::String() + guid + ".tres"))
@@ -766,7 +772,11 @@ Dictionary FMODStudioEditorModule::get_project_info_from_banks()
 	}
 
 	int parameter_count = 0;
-	studio_system->getParameterDescriptionCount(&parameter_count);
+
+	if (studio_system)
+	{
+		studio_system->getParameterDescriptionCount(&parameter_count);
+	}
 
 	if (parameter_count > 0)
 	{
