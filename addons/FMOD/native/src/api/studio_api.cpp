@@ -27,16 +27,16 @@ void StudioSystem::_bind_methods()
 			&StudioSystem::get_parameter_label_by_id);
 	ClassDB::bind_method(D_METHOD("get_parameter_by_id", "parameter_id"), &StudioSystem::get_parameter_by_id);
 	ClassDB::bind_method(D_METHOD("set_parameter_by_id", "parameter_id", "value", "ignore_seek_speed"),
-			&StudioSystem::set_parameter_by_id);
+			&StudioSystem::set_parameter_by_id, DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("set_parameter_by_id_with_label", "parameter_id", "label", "ignore_seek_speed"),
-			&StudioSystem::set_parameter_by_id_with_label);
+			&StudioSystem::set_parameter_by_id_with_label, DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("set_parameters_by_ids", "parameter_ids", "values", "count", "ignore_seek_speed"),
-			&StudioSystem::set_parameters_by_ids);
+			&StudioSystem::set_parameters_by_ids, DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("get_parameter_by_name", "name"), &StudioSystem::get_parameter_by_name);
 	ClassDB::bind_method(D_METHOD("set_parameter_by_name", "name", "value", "ignore_seek_speed"),
-			&StudioSystem::set_parameter_by_name);
+			&StudioSystem::set_parameter_by_name, DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("set_parameter_by_name_with_label", "name", "label", "ignore_seek_speed"),
-			&StudioSystem::set_parameter_by_name_with_label);
+			&StudioSystem::set_parameter_by_name_with_label, DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("lookup_id", "path"), &StudioSystem::lookup_id);
 	ClassDB::bind_method(D_METHOD("lookup_path", "guid"), &StudioSystem::lookup_path);
 	ClassDB::bind_method(D_METHOD("get_num_listeners"), &StudioSystem::get_num_listeners);
@@ -1261,16 +1261,16 @@ void EventInstance::_bind_methods()
 	ClassDB::bind_method(D_METHOD("is_virtual"), &EventInstance::is_virtual);
 	ClassDB::bind_method(D_METHOD("get_parameter_by_id", "parameter_id"), &EventInstance::get_parameter_by_id);
 	ClassDB::bind_method(D_METHOD("set_parameter_by_id", "parameter_id", "parameter_value", "ignore_seek_speed"),
-			&EventInstance::set_parameter_by_id);
+			&EventInstance::set_parameter_by_id, DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("set_parameter_by_id_with_label", "parameter_id", "label", "ignore_seek_speed"),
-			&EventInstance::set_parameter_by_id_with_label);
+			&EventInstance::set_parameter_by_id_with_label, DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("set_parameters_by_ids", "parameter_ids", "values", "count", "ignore_seek_speed"),
-			&EventInstance::set_parameters_by_ids);
+			&EventInstance::set_parameters_by_ids, DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("get_parameter_by_name", "name"), &EventInstance::get_parameter_by_name);
 	ClassDB::bind_method(D_METHOD("set_parameter_by_name", "name", "parameter_value", "ignore_seek_speed"),
-			&EventInstance::set_parameter_by_name);
+			&EventInstance::set_parameter_by_name, DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("set_parameter_by_name_with_label", "name", "label", "ignore_seek_speed"),
-			&EventInstance::set_parameter_by_name_with_label);
+			&EventInstance::set_parameter_by_name_with_label, DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("key_off"), &EventInstance::key_off);
 	ClassDB::bind_method(D_METHOD("get_cpu_usage", "cpu_usage"), &EventInstance::get_cpu_usage);
 	ClassDB::bind_method(D_METHOD("get_memory_usage", "memory_usage_ref"), &EventInstance::get_memory_usage);

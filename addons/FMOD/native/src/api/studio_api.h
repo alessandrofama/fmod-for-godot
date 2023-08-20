@@ -51,14 +51,14 @@ public:
 
 	Dictionary get_parameter_by_id(const Ref<FmodTypes::FMOD_STUDIO_PARAMETER_ID>& parameter_id) const;
 	bool set_parameter_by_id(const Ref<FmodTypes::FMOD_STUDIO_PARAMETER_ID>& parameter_id, float value,
-			bool ignore_seek_speed) const;
+			bool ignore_seek_speed = false) const;
 	bool set_parameter_by_id_with_label(const Ref<FmodTypes::FMOD_STUDIO_PARAMETER_ID>& parameter_id, const String& label,
-			bool ignore_seek_speed) const;
+			bool ignore_seek_speed = false) const;
 	bool set_parameters_by_ids(const Array& parameter_ids, const Array& values, int count,
-			bool ignore_seek_speed) const;
+			bool ignore_seek_speed = false) const;
 	Dictionary get_parameter_by_name(const String& name) const;
-	bool set_parameter_by_name(const String& name, float value, bool ignore_seek_speed) const;
-	bool set_parameter_by_name_with_label(const String& name, const String& label, bool ignore_seek_speed) const;
+	bool set_parameter_by_name(const String& name, float value, bool ignore_seek_speed = false) const;
+	bool set_parameter_by_name_with_label(const String& name, const String& label, bool ignore_seek_speed = false) const;
 
 	String lookup_id(const String& path) const;
 	String lookup_path(const String& guid) const;
@@ -203,14 +203,14 @@ public:
 
 	Dictionary get_parameter_by_id(const Ref<FmodTypes::FMOD_STUDIO_PARAMETER_ID>& parameter_id) const;
 	bool set_parameter_by_id(const Ref<FmodTypes::FMOD_STUDIO_PARAMETER_ID>& parameter_id, float value,
-			bool ignore_seek_speed) const;
+			bool ignore_seek_speed = false) const;
 	bool set_parameter_by_id_with_label(const Ref<FmodTypes::FMOD_STUDIO_PARAMETER_ID>& parameter_id,
-			const String& label, bool ignore_seek_speed);
-	bool set_parameters_by_ids(const Array ids, const Array values, int count, bool ignore_seek_speed) const;
+			const String& label, bool ignore_seek_speed = false);
+	bool set_parameters_by_ids(const Array ids, const Array values, int count, bool ignore_seek_speed = false) const;
 
 	Dictionary get_parameter_by_name(const String& name) const;
-	bool set_parameter_by_name(const String& name, float value, bool ignore_seek_speed) const;
-	bool set_parameter_by_name_with_label(const String& name, const String& label, bool ignore_seek_speed);
+	bool set_parameter_by_name(const String& name, float value, bool ignore_seek_speed = false) const;
+	bool set_parameter_by_name_with_label(const String& name, const String& label, bool ignore_seek_speed = false);
 
 	bool key_off() const;
 
