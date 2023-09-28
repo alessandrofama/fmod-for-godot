@@ -74,7 +74,7 @@ func run_tests(tests, randomize) -> Dictionary:
 	if randomize:
 		tests.shuffle()
 	for test in tests:
-		RuntimeManager.studio_system.update()
+		FMODRuntime.studio_system.update()
 		if test["func"].call():
 			passed += 1
 			print_rich("[color=green]PASS: ", test["name"] + "[/color]")

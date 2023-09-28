@@ -9,10 +9,10 @@ on:
       - main
 
 env:
-  FMOD_VERSION: 20214
-  GODOT_ENGINE_VERSION: "4.1"
+  FMOD_VERSION: 20217
+  GODOT_ENGINE_VERSION: "4.1.1"
   GODOT_ENGINE_STAGE: "stable"
-  INTEGRATION_VERSION: "1.0-alpha-2"
+  INTEGRATION_VERSION: "1.0-alpha-4"
 
 jobs:
   build-all:
@@ -123,12 +123,8 @@ jobs:
           cd addons/FMOD/native/tools
           python download_fmod.py ${{ secrets.FMOD_USERNAME }} ${{ secrets.FMOD_PASSWORD }} api ${{ matrix.api-platform }} ${{ env.FMOD_VERSION }}
           mkdir -p ../fmodapi
-          if [ "${{ env.FMOD_VERSION }}" = "20214" ]; then
-            tar -zxvf fmodstudioapi${{env.FMOD_VERSION}}${{matrix.fmod-executable-suffix}}
-            tar -zxvf fmodstudioapi${{env.FMOD_VERSION}}${{matrix.fmod-executable-suffix}} --strip-components=1 -C ../fmodapi
-          else
-            tar -zxvf fmodstudioapi${{env.FMOD_VERSION}}${{matrix.fmod-executable-suffix}} --strip-components=1 -C ../fmodapi
-          fi
+          tar -zxvf fmodstudioapi${{env.FMOD_VERSION}}${{matrix.fmod-executable-suffix}}
+          tar -zxvf fmodstudioapi${{env.FMOD_VERSION}}${{matrix.fmod-executable-suffix}} --strip-components=1 -C ../fmodapi
           cd ../../../../
 
       - name: Download FMOD API (iOS)

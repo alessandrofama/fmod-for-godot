@@ -21,18 +21,21 @@ void register_fmod_types(ModuleInitializationLevel p_level)
 		// Editor Utilities
 		ClassDB::register_class<ProjectCache>();
 
-		ClassDB::register_class<ProjectBrowserPreviewButton>();
-		ClassDB::register_class<InspectorBrowser>();
-		ClassDB::register_class<InspectorBrowserTree>();
-		ClassDB::register_class<InspectorBrowserProperty>();
-		// ClassDB::register_class<InspectorBrowserPlugin>();
+		ClassDB::register_class<FMODProjectBrowserPreviewButton>();
+		ClassDB::register_class<FMODEditorInspector>();
+		ClassDB::register_class<FMODEditorInspectorTree>();
+		ClassDB::register_class<FMODEditorInspectorProperty>();
+		ClassDB::register_class<FMODEditorInspectorPlugin>();
 
-		ClassDB::register_class<DiscreteParameterControl>();
-		ClassDB::register_class<LabeledParameterControl>();
-		ClassDB::register_class<ContinuousParameterControl>();
+		ClassDB::register_class<FMODEditorDiscreteParameter>();
+		ClassDB::register_class<FMODEditorLabeledParameter>();
+		ClassDB::register_class<FMODEditorContinuousParameter>();
 
-		ClassDB::register_class<ProjectBrowserTree>();
-		ClassDB::register_class<ProjectBrowserWindow>();
+		ClassDB::register_class<FMODProjectBrowserTree>();
+		ClassDB::register_class<FMODProjectBrowserWindow>();
+
+		ClassDB::register_class<FMODEditorPlugin>();
+		EditorPlugins::add_by_type<FMODEditorPlugin>();
 	}
 
 	if (p_level == MODULE_INITIALIZATION_LEVEL_SCENE)
@@ -96,6 +99,7 @@ void unregister_fmod_types(ModuleInitializationLevel p_level)
 	{
 		Engine::get_singleton()->unregister_singleton("FMODStudioEditorModule");
 		memdelete(fmod_editor_module);
+		EditorPlugins::remove_by_type<FMODEditorPlugin>();
 	}
 
 	if (p_level == MODULE_INITIALIZATION_LEVEL_SCENE)

@@ -2,7 +2,7 @@
 
 [![Build](https://github.com/alessandrofama/fmod-for-godot/workflows/Build/badge.svg)](https://github.com/alessandrofama/fmod-for-godot/actions/workflows/build_all.yml) [![Discord](https://img.shields.io/discord/1083520667451920394?label=Discord)](https://discord.gg/XQbvRdQcNn)
 
-Welcome! This repository provides an integration of [FMOD Studio's audio middleware](https://www.fmod.com/) into the [Godot game engine](https://godotengine.org). At the moment, **FMOD version 2.02.12** and **Godot 4.0 stable** are supported.
+Welcome! This repository provides an integration of [FMOD Studio's audio middleware](https://www.fmod.com/) into the [Godot game engine](https://godotengine.org). At the moment, **FMOD version 2.02.17** and **Godot 4.1.1 stable** are supported.
 
 <img src="https://alessandrofama.com/wp-content/uploads/sites/3/fmod-for-godot-1920.png" width="720">
 

@@ -65,7 +65,7 @@ func test_get_bank() -> bool:
 
 
 func test_get_event_by_id() -> bool:
-	var guid = RuntimeManager.path_to_guid("event:/TestEvent")
+	var guid = FMODRuntime.path_to_guid("event:/TestEvent")
 	var result_1 = FMODStudioModule.get_studio_system().get_event_by_id(guid)
 	var result_2 = fmod_assert(result_1 is EventDescription)
 	if result_1 and result_2:
@@ -76,7 +76,7 @@ func test_get_event_by_id() -> bool:
 
 
 func test_get_bus_by_id() -> bool:
-	var guid = RuntimeManager.path_to_guid("bus:/TestBus")
+	var guid = FMODRuntime.path_to_guid("bus:/TestBus")
 	var result_1 = FMODStudioModule.get_studio_system().get_bus_by_id(guid)
 	var result_2 = fmod_assert(result_1 is Bus)
 	if result_1 and result_2:
@@ -87,7 +87,7 @@ func test_get_bus_by_id() -> bool:
 
 
 func test_get_vca_by_id() -> bool:
-	var guid = RuntimeManager.path_to_guid("vca:/TestVCA")
+	var guid = FMODRuntime.path_to_guid("vca:/TestVCA")
 	var result_1 = FMODStudioModule.get_studio_system().get_vca_by_id(guid)
 	var result_2 = fmod_assert(result_1 is VCA)
 	if result_1 and result_2:
@@ -98,7 +98,7 @@ func test_get_vca_by_id() -> bool:
 
 
 func test_get_bank_by_id() -> bool:
-	var guid = RuntimeManager.path_to_guid("bank:/Master")
+	var guid = FMODRuntime.path_to_guid("bank:/Master")
 	var result_1 = FMODStudioModule.get_studio_system().get_bank_by_id(guid)
 	var result_2 = fmod_assert(result_1 is Bank)
 	if result_1 and result_2:

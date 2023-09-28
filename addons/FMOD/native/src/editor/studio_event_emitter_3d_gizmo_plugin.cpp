@@ -62,8 +62,6 @@ void StudioEventEmitter3DGizmoPlugin::_redraw(const Ref<EditorNode3DGizmo>& gizm
 		return;
 	}
 
-	
-
 	bool is_3d = event_asset->get_3d();
 
 	if (!is_3d)
@@ -71,11 +69,10 @@ void StudioEventEmitter3DGizmoPlugin::_redraw(const Ref<EditorNode3DGizmo>& gizm
 		return;
 	}
 
-	float r_max{};	
+	float r_max{};
 	float r_min{};
 	float max_distance = event_asset->get_max_distance();
 	float min_distance = event_asset->get_min_distance();
-
 
 	if (max_distance > CMP_EPSILON)
 	{

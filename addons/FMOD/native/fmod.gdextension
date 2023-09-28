@@ -24,3 +24,12 @@ linux.debug = {"lib/linux/debug/libfmodL.so": "", "lib/linux/debug/libfmodL.so.1
 linux.release = {"lib/linux/release/libfmod.so": "", "lib/linux/release/libfmod.so.13": "", "lib/linux/release/libfmod.so.13.12": "", "lib/linux/release/libfmodstudio.so": "", "lib/linux/release/libfmodstudio.so.13": "", "lib/linux/release/libfmodstudio.so.13.12": ""}
 android.debug.arm64 = {"lib/android/arm64/debug/libfmodL.so": "", "lib/android/arm64/debug/libfmodstudioL.so": ""}
 android.release.arm64 = {"lib/android/arm64/release/libfmodL.so": "", "lib/android/arm64/release/libfmodstudioL.so": ""}
+
+[icons]
+StudioEventEmitter3D = "res://addons/FMOD/editor/images/fmod_icon.svg"
+StudioEventEmitter2D = "res://addons/FMOD/editor/images/fmod_icon.svg"
+StudioParameterTrigger = "res://addons/FMOD/editor/images/fmod_icon.svg"
+StudioGlobalParameterTrigger = "res://addons/FMOD/editor/images/fmod_icon.svg"
+StudioBankLoader = "res://addons/FMOD/editor/images/fmod_icon.svg"
+StudioListener3D = "res://addons/FMOD/editor/images/fmod_icon.svg"
+StudioListener2D = "res://addons/FMOD/editor/images/fmod_icon.svg"

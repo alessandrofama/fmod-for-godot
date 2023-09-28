@@ -40,7 +40,7 @@ public:
 	Ref<EventDescription> get_event_by_id(const String& event_guid) const;
 	Ref<Bus> get_bus_by_id(const String& bus_guid) const;
 	Ref<VCA> get_vca_by_id(const String& vca_guid) const;
-	Ref<Bank> get_bank_by_id(const String& bankGuid) const;
+	Ref<Bank> get_bank_by_id(const String& bank_guid) const;
 
 	// note(alex): StudioSystem::getSoundInfo is not implemented due to missing Core API implementation.
 	Ref<FmodTypes::FMOD_STUDIO_PARAMETER_DESCRIPTION> get_parameter_description_by_name(const String& name) const;
@@ -51,14 +51,14 @@ public:
 
 	Dictionary get_parameter_by_id(const Ref<FmodTypes::FMOD_STUDIO_PARAMETER_ID>& parameter_id) const;
 	bool set_parameter_by_id(const Ref<FmodTypes::FMOD_STUDIO_PARAMETER_ID>& parameter_id, float value,
-			bool ignore_seek_speed) const;
+			bool ignore_seek_speed = false) const;
 	bool set_parameter_by_id_with_label(const Ref<FmodTypes::FMOD_STUDIO_PARAMETER_ID>& parameter_id, const String& label,
-			bool ignore_seek_speed) const;
+			bool ignore_seek_speed = false) const;
 	bool set_parameters_by_ids(const Array& parameter_ids, const Array& values, int count,
-			bool ignore_seek_speed) const;
+			bool ignore_seek_speed = false) const;
 	Dictionary get_parameter_by_name(const String& name) const;
-	bool set_parameter_by_name(const String& name, float value, bool ignore_seek_speed) const;
-	bool set_parameter_by_name_with_label(const String& name, const String& label, bool ignore_seek_speed) const;
+	bool set_parameter_by_name(const String& name, float value, bool ignore_seek_speed = false) const;
+	bool set_parameter_by_name_with_label(const String& name, const String& label, bool ignore_seek_speed = false) const;
 
 	String lookup_id(const String& path) const;
 	String lookup_path(const String& guid) const;
@@ -187,7 +187,7 @@ public:
 	bool set_paused(bool paused) const;
 
 	bool start() const;
-	bool stop(int stop_mode) const;
+	bool stop(FMOD_STUDIO_STOP_MODE stop_mode) const;
 
 	int get_timeline_position() const;
 	bool set_timeline_position(int position) const;
@@ -203,14 +203,14 @@ public:
 
 	Dictionary get_parameter_by_id(const Ref<FmodTypes::FMOD_STUDIO_PARAMETER_ID>& parameter_id) const;
 	bool set_parameter_by_id(const Ref<FmodTypes::FMOD_STUDIO_PARAMETER_ID>& parameter_id, float value,
-			bool ignore_seek_speed) const;
+			bool ignore_seek_speed = false) const;
 	bool set_parameter_by_id_with_label(const Ref<FmodTypes::FMOD_STUDIO_PARAMETER_ID>& parameter_id,
-			const String& label, bool ignore_seek_speed);
-	bool set_parameters_by_ids(const Array ids, const Array values, int count, bool ignore_seek_speed) const;
+			const String& label, bool ignore_seek_speed = false) const;
+	bool set_parameters_by_ids(const Array ids, const Array values, int count, bool ignore_seek_speed = false) const;
 
 	Dictionary get_parameter_by_name(const String& name) const;
-	bool set_parameter_by_name(const String& name, float value, bool ignore_seek_speed) const;
-	bool set_parameter_by_name_with_label(const String& name, const String& label, bool ignore_seek_speed);
+	bool set_parameter_by_name(const String& name, float value, bool ignore_seek_speed = false) const;
+	bool set_parameter_by_name_with_label(const String& name, const String& label, bool ignore_seek_speed = false) const;
 
 	bool key_off() const;
 
