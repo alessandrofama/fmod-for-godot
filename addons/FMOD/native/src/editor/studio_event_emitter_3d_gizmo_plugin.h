@@ -1,3 +1,6 @@
+#ifndef STUDIO_EVENT_EMITTER_3D_GIZMO_PLUGIN
+#define STUDIO_EVENT_EMITTER_3D_GIZMO_PLUGIN
+
 // This is slighty modified version of Godot's AudioStreamPlayer3DGizmoPlugin
 // in editor/plugins/node_3d_editor_gizmos.cpp and adapted to also display
 // the minimum distance of an FMOD Event.
@@ -31,3 +34,5 @@ public:
 	virtual int32_t _get_priority() const override;
 	virtual void _redraw(const Ref<EditorNode3DGizmo>& gizmo) override;
 };
+
+#endif

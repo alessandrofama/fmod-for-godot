@@ -1,18 +1,21 @@
 #include "inspector_browser.h"
+#include <functional>
 
 using namespace godot;
 
-void InspectorBrowserTree::_bind_methods()
+const int BASE_DPI = 96;
+
+void FMODEditorInspectorTree::_bind_methods()
 {
-	ClassDB::bind_method(D_METHOD("on_size_changed"), &InspectorBrowserTree::on_size_changed);
-	ClassDB::bind_method(D_METHOD("on_item_collapsed"), &InspectorBrowserTree::on_item_collapsed);
-	ClassDB::bind_method(D_METHOD("on_text_changed"), &InspectorBrowserTree::on_text_changed);
+	ClassDB::bind_method(D_METHOD("on_size_changed"), &FMODEditorInspectorTree::on_size_changed);
+	ClassDB::bind_method(D_METHOD("on_item_collapsed"), &FMODEditorInspectorTree::on_item_collapsed);
+	ClassDB::bind_method(D_METHOD("on_text_changed"), &FMODEditorInspectorTree::on_text_changed);
 }
 
-void InspectorBrowserTree::initialize(FMODStudioEditorModule::FMODAssetType item_type)
+void FMODEditorInspectorTree::initialize(FMODStudioEditorModule::FMODAssetType item_type)
 {
 	type = item_type;
-	window = Object::cast_to<InspectorBrowser>(get_parent()->get_parent());
+	window = Object::cast_to<FMODEditorInspector>(get_parent()->get_parent());
 	window->connect("size_changed", Callable(this, "on_size_changed"));
 
 	search_text = window->search_text;
@@ -29,7 +32,7 @@ void InspectorBrowserTree::initialize(FMODStudioEditorModule::FMODAssetType item
 	}
 }
 
-void InspectorBrowserTree::populate_browser()
+void FMODEditorInspectorTree::populate_browser()
 {
 	if (root_item)
 	{
@@ -111,6 +114,68 @@ void InspectorBrowserTree::populate_browser()
 				FMODStudioEditorModule::get_singleton()->create_tree_items(this, project_cache->get_parameter_tree(),
 						parameters_root);
 				parameters_root->set_visible(true);
+
+				// Setup local parameters
+				{
+					local_parameters_root = create_item(root_item);
+					local_parameters_root->set_text(0, "Local Parameters");
+					local_parameters_root->set_icon(
+							0, FMODStudioEditorModule::get_singleton()->get_icon(FMODStudioEditorModule::FMOD_ICONTYPE_FOLDER_CLOSED));
+					FMODStudioEditorModule::get_singleton()->create_tree_items(this, project_cache->get_event_tree(),
+							local_parameters_root);
+					local_parameters_root->set_visible(true);
+
+					// note(alex): iterating through the Event Tree to get local Event Parameters and adding them as children to the respective Events
+					std::function<void(TreeItem*)> get_event_parameters = [&get_event_parameters](TreeItem* tree_item)
+					{
+						while (tree_item)
+						{
+							if (tree_item->has_meta("Type"))
+							{
+								String type = tree_item->get_meta("Type");
+								if (type == String("event"))
+								{
+									Ref<EventAsset> event_asset = tree_item->get_meta("Resource");
+
+									if (event_asset.is_valid())
+									{
+										// note(alex): setting the Resource meta for the Event TreeItem to null, so it can't be selected
+										tree_item->set_meta("Resource", Variant());
+
+										Dictionary parameters = event_asset->get_parameters();
+
+										for (size_t i = 0; i < parameters.size(); i++)
+										{
+											Ref<ParameterAsset> param_asset = parameters.values()[i];
+
+											if (param_asset.is_valid())
+											{
+												String name = param_asset->get_name();
+												String path = param_asset->get_path();
+												TreeItem* child = tree_item->create_child();
+												child->set_text(0, name);
+												child->set_icon(0, FMODStudioEditorModule::get_singleton()->get_icon(FMODStudioEditorModule::FMOD_ICONTYPE_C_PARAMETER));
+												child->set_meta("Type", "parameter");
+												child->set_meta("Path", path);
+												child->set_meta("Resource", param_asset);
+											}
+										}
+									}
+								}
+							}
+
+							if (tree_item->get_child_count() > 0)
+							{
+								get_event_parameters(tree_item->get_first_child());
+							}
+
+							tree_item = tree_item->get_next();
+						}
+					};
+
+					TreeItem* item = local_parameters_root->get_first_child();
+					get_event_parameters(item);
+				}
 			}
 			break;
 			default:
@@ -119,13 +184,13 @@ void InspectorBrowserTree::populate_browser()
 	}
 }
 
-void InspectorBrowserTree::on_text_changed(const String& text_filter)
+void FMODEditorInspectorTree::on_text_changed(const String& text_filter)
 {
 	filter = text_filter;
 	update_filter(root_item, false);
 }
 
-bool InspectorBrowserTree::update_filter(TreeItem* p_parent, bool p_scroll_to_selected)
+bool FMODEditorInspectorTree::update_filter(TreeItem* p_parent, bool p_scroll_to_selected)
 {
 	if (!p_parent)
 	{
@@ -183,7 +248,7 @@ bool InspectorBrowserTree::update_filter(TreeItem* p_parent, bool p_scroll_to_se
 	return keep;
 }
 
-void InspectorBrowserTree::collapse_all(TreeItem* p_parent)
+void FMODEditorInspectorTree::collapse_all(TreeItem* p_parent)
 {
 	if (!p_parent)
 	{
@@ -253,12 +318,12 @@ void InspectorBrowserTree::collapse_all(TreeItem* p_parent)
 	}
 }
 
-void InspectorBrowserTree::on_size_changed()
+void FMODEditorInspectorTree::on_size_changed()
 {
 	window->root_vbox->set_size(window->get_size());
 }
 
-void InspectorBrowserTree::on_item_collapsed(Object* item)
+void FMODEditorInspectorTree::on_item_collapsed(Object* item)
 {
 	TreeItem* tree_item = Object::cast_to<TreeItem>(item);
 
@@ -285,19 +350,38 @@ void InspectorBrowserTree::on_item_collapsed(Object* item)
 	}
 }
 
-void InspectorBrowser::_bind_methods()
+void FMODEditorInspector::_bind_methods()
 {
 }
 
-void InspectorBrowser::initialize()
+void FMODEditorInspector::initialize()
 {
 	set_name("Window");
 	set_title("FMOD Browser");
 	set_disable_3d(true);
+	set_exclusive(true);
 
 	root_vbox = memnew(VBoxContainer);
 	root_vbox->set_name("ParentVBoxContainer");
-	root_vbox->set_size(Size2(700, 1100));
+
+	Size2 window_size = Size2(400, 680);
+	DisplayServer* display_server = DisplayServer::get_singleton();
+
+	if (display_server)
+	{
+		int32_t dpi = display_server->screen_get_dpi();
+
+		if (dpi != 72)
+		{
+			int dpi_scaling_factor = 1;
+			dpi_scaling_factor = dpi / BASE_DPI;
+			window_size *= dpi_scaling_factor;
+		}
+
+		window_size *= editor_scale;
+	}
+
+	root_vbox->set_size(window_size);
 	root_vbox->set_v_size_flags(Control::SIZE_EXPAND_FILL);
 	root_vbox->set_h_size_flags(Control::SIZE_EXPAND_FILL);
 	add_child(root_vbox);
@@ -310,7 +394,7 @@ void InspectorBrowser::initialize()
 	search_text->set_name("SearchText");
 	search_vbox->add_child(search_text);
 
-	tree = memnew(InspectorBrowserTree);
+	tree = memnew(FMODEditorInspectorTree);
 	tree->set_name("ProjectObjectsTree");
 	tree->set_allow_reselect(true);
 	tree->set_hide_folding(true);
@@ -320,20 +404,25 @@ void InspectorBrowser::initialize()
 	root_vbox->add_child(tree);
 }
 
-void InspectorBrowserProperty::_bind_methods()
+void FMODEditorInspector::set_editor_scale(float editor_scale)
 {
-	ClassDB::bind_method(D_METHOD("init", "asset_type"), &InspectorBrowserProperty::init);
-	ClassDB::bind_method(D_METHOD("on_button_pressed"), &InspectorBrowserProperty::on_button_pressed);
-	ClassDB::bind_method(D_METHOD("on_item_selected"), &InspectorBrowserProperty::on_item_selected);
-	ClassDB::bind_method(D_METHOD("reset"), &InspectorBrowserProperty::reset);
-	ClassDB::bind_method(D_METHOD("on_event_popup_id_pressed", "id"), &InspectorBrowserProperty::on_event_popup_id_pressed);
+	this->editor_scale = editor_scale;
 }
 
-void InspectorBrowserProperty::popup_menu(PopupType type, Vector2 pos)
+void FMODEditorInspectorProperty::_bind_methods()
+{
+	ClassDB::bind_method(D_METHOD("init", "asset_type"), &FMODEditorInspectorProperty::init);
+	ClassDB::bind_method(D_METHOD("on_button_pressed"), &FMODEditorInspectorProperty::on_button_pressed);
+	ClassDB::bind_method(D_METHOD("on_item_selected"), &FMODEditorInspectorProperty::on_item_selected);
+	ClassDB::bind_method(D_METHOD("reset"), &FMODEditorInspectorProperty::reset);
+	ClassDB::bind_method(D_METHOD("on_event_popup_id_pressed", "id"), &FMODEditorInspectorProperty::on_event_popup_id_pressed);
+}
+
+void FMODEditorInspectorProperty::popup_menu(PopupType type, Vector2 pos)
 {
 	switch (type)
 	{
-		case InspectorBrowserProperty::POPUP_EVENT:
+		case FMODEditorInspectorProperty::POPUP_EVENT:
 		{
 			event_popup->popup_on_parent(Rect2(pos, Vector2(0, 0)));
 		}
@@ -343,19 +432,20 @@ void InspectorBrowserProperty::popup_menu(PopupType type, Vector2 pos)
 	}
 }
 
-void InspectorBrowserProperty::init(FMODStudioEditorModule::FMODAssetType asset_type)
+void FMODEditorInspectorProperty::init(FMODStudioEditorModule::FMODAssetType asset_type)
 {
 	type = asset_type;
 	property_control = memnew(Button);
-	inspector_browser = memnew(InspectorBrowser);
+	inspector_browser = memnew(FMODEditorInspector);
+	inspector_browser->set_editor_scale(editor_scale);
 	inspector_browser->initialize();
 
 	add_child(property_control);
 	property_control->set_clip_text(true);
-	inspector_browser->set_exclusive(true);
+
 	inspector_browser->connect("close_requested", Callable(this, "reset"));
-	inspector_browser->connect("focus_exited", Callable(this, "reset"));
-	InspectorBrowserTree* tree = inspector_browser->tree;
+	inspector_browser->connect("confirmed", Callable(this, "reset"));
+	FMODEditorInspectorTree* tree = inspector_browser->tree;
 	tree->initialize(type);
 
 	switch (type)
@@ -396,7 +486,7 @@ void InspectorBrowserProperty::init(FMODStudioEditorModule::FMODAssetType asset_
 	event_popup->set_owner(this);
 }
 
-void InspectorBrowserProperty::_input(const Ref<InputEvent>& event)
+void FMODEditorInspectorProperty::_input(const Ref<InputEvent>& event)
 {
 	Ref<InputEventMouseButton> mouse_button_event = event;
 	if (mouse_button_event.is_valid())
@@ -417,7 +507,7 @@ void InspectorBrowserProperty::_input(const Ref<InputEvent>& event)
 	}
 }
 
-void InspectorBrowserProperty::_update_property()
+void FMODEditorInspectorProperty::_update_property()
 {
 	Variant new_value = get_edited_object()->get(get_edited_property());
 
@@ -483,7 +573,7 @@ void InspectorBrowserProperty::_update_property()
 	updating = false;
 }
 
-void InspectorBrowserProperty::on_button_pressed()
+void FMODEditorInspectorProperty::on_button_pressed()
 {
 	if (updating)
 	{
@@ -494,9 +584,9 @@ void InspectorBrowserProperty::on_button_pressed()
 	open_popup();
 }
 
-void InspectorBrowserProperty::on_item_selected()
+void FMODEditorInspectorProperty::on_item_selected()
 {
-	InspectorBrowserTree* tree = inspector_browser->tree;
+	FMODEditorInspectorTree* tree = inspector_browser->tree;
 	TreeItem* selected_item = tree->get_selected();
 	if (selected_item)
 	{
@@ -522,18 +612,19 @@ void InspectorBrowserProperty::on_item_selected()
 	}
 }
 
-void InspectorBrowserProperty::open_popup()
+void FMODEditorInspectorProperty::open_popup()
 {
 	add_child(inspector_browser);
+
 	inspector_browser->popup(
-			Rect2i(Vector2i(get_global_mouse_position().x - 900.0f, get_global_mouse_position().y - 200.0f), Vector2(1, 1)));
+			Rect2i(Vector2i(get_global_mouse_position().x - (inspector_browser->get_size().x), get_global_mouse_position().y - (100.0f * editor_scale)), Vector2(1, 1)));
 }
 
-void InspectorBrowserProperty::close_popup()
+void FMODEditorInspectorProperty::close_popup()
 {
 	for (int i = 0; i < get_child_count(); i++)
 	{
-		if (get_child(i)->get_class() == "InspectorBrowser")
+		if (get_child(i)->get_class() == "FMODEditorInspector")
 		{
 			inspector_browser->hide();
 			remove_child(inspector_browser);
@@ -543,12 +634,12 @@ void InspectorBrowserProperty::close_popup()
 	inspector_browser->search_text->set_text("");
 }
 
-void InspectorBrowserProperty::reset()
+void FMODEditorInspectorProperty::reset()
 {
 	emit_changed(get_edited_property(), current_value);
 }
 
-void InspectorBrowserProperty::on_event_popup_id_pressed(int32_t id)
+void FMODEditorInspectorProperty::on_event_popup_id_pressed(int32_t id)
 {
 	if (!current_value.is_valid())
 	{
@@ -592,4 +683,14 @@ void InspectorBrowserProperty::on_event_popup_id_pressed(int32_t id)
 		default:
 			break;
 	}
+}
+
+void FMODEditorInspectorProperty::set_editor_scale(float editor_scale)
+{
+	this->editor_scale = editor_scale;
+}
+
+float FMODEditorInspectorProperty::get_editor_scale() const
+{
+	return editor_scale;
 }

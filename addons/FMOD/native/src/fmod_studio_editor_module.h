@@ -33,10 +33,14 @@ class FMODSettings : public RefCounted
 	GDCLASS(FMODSettings, RefCounted);
 
 protected:
+	static FMODSettings* singleton;
 	static void _bind_methods();
 
 public:
 	FMODSettings();
+	~FMODSettings();
+	static FMODSettings* get_singleton();
+	void initialize();
 
 private:
 	void add_fmod_settings();

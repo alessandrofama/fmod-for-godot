@@ -8,6 +8,7 @@
 #include <godot_cpp/godot.hpp>
 
 #include "api/studio_api.h"
+#include "editor/fmod_plugin.h"
 #include "editor/inspector_browser.h"
 #include "editor/project_browser.h"
 #include "editor/studio_event_emitter_3d_gizmo_plugin.h"

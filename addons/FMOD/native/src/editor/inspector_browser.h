@@ -3,6 +3,7 @@
 
 #include "fmod_assets.h"
 #include "fmod_studio_editor_module.h"
+#include <godot_cpp/classes/accept_dialog.hpp>
 #include <godot_cpp/classes/button.hpp>
 #include <godot_cpp/classes/display_server.hpp>
 #include <godot_cpp/classes/editor_inspector_plugin.hpp>
@@ -15,15 +16,14 @@
 #include <godot_cpp/classes/tree.hpp>
 #include <godot_cpp/classes/tree_item.hpp>
 #include <godot_cpp/classes/v_box_container.hpp>
-#include <godot_cpp/classes/window.hpp>
 
 using namespace godot;
 
-class InspectorBrowser;
+class FMODEditorInspector;
 
-class InspectorBrowserTree : public Tree
+class FMODEditorInspectorTree : public Tree
 {
-	GDCLASS(InspectorBrowserTree, Tree);
+	GDCLASS(FMODEditorInspectorTree, Tree);
 
 protected:
 	static void _bind_methods();
@@ -39,9 +39,10 @@ private:
 	TreeItem* busses_root = nullptr;
 	TreeItem* vcas_root = nullptr;
 	TreeItem* parameters_root = nullptr;
+	TreeItem* local_parameters_root = nullptr;
 	Ref<Texture2D> icon;
 	Ref<ProjectCache> project_cache;
-	InspectorBrowser* window = nullptr;
+	FMODEditorInspector* window = nullptr;
 	String filter = "";
 
 public:
@@ -54,24 +55,28 @@ public:
 	void on_item_collapsed(Object* item);
 };
 
-class InspectorBrowser : public Window
+class FMODEditorInspector : public AcceptDialog
 {
-	GDCLASS(InspectorBrowser, Window);
+	GDCLASS(FMODEditorInspector, AcceptDialog);
 
 protected:
 	static void _bind_methods();
+
+private:
+	float editor_scale;
 
 public:
 	VBoxContainer* root_vbox = nullptr;
 	VBoxContainer* search_vbox = nullptr;
 	LineEdit* search_text = nullptr;
-	InspectorBrowserTree* tree = nullptr;
+	FMODEditorInspectorTree* tree = nullptr;
 	void initialize();
+	void set_editor_scale(float editor_scale);
 };
 
-class InspectorBrowserProperty : public EditorProperty
+class FMODEditorInspectorProperty : public EditorProperty
 {
-	GDCLASS(InspectorBrowserProperty, EditorProperty);
+	GDCLASS(FMODEditorInspectorProperty, EditorProperty);
 
 	enum PopupType
 	{
@@ -94,9 +99,10 @@ private:
 	Ref<Texture2D> icon;
 	Ref<Resource> current_value;
 	bool updating = false;
-	InspectorBrowser* inspector_browser;
+	FMODEditorInspector* inspector_browser;
 	FMODStudioEditorModule::FMODAssetType type = FMODStudioEditorModule::FMODAssetType::FMOD_ASSETTYPE_NONE;
 	PopupMenu* event_popup;
+	float editor_scale;
 	void popup_menu(PopupType type, Vector2 pos);
 
 public:
@@ -109,70 +115,82 @@ public:
 	void close_popup();
 	void reset();
 	void on_event_popup_id_pressed(int32_t id);
+	void set_editor_scale(float editor_scale);
+	float get_editor_scale() const;
 };
 
-//class InspectorBrowserPlugin : public EditorInspectorPlugin
-//{
-//	GDCLASS(InspectorBrowserPlugin, EditorInspectorPlugin);
-//
-//protected:
-//	static void _bind_methods()
-//	{
-//	}
-//
-//public:
-//	virtual bool _can_handle(const Variant& object) const override
-//	{
-//		Object* obj = object;
-//		return object.get_type() != Variant::NIL && obj != nullptr;
-//	}
-//
-//	virtual bool _parse_property(Object* object, int64_t type, const String& name, int64_t hint_type,
-//			const String& hint_string, int64_t usage_flags, bool wide) override
-//	{
-//		if (object != nullptr && type == Variant::Type::OBJECT)
-//		{
-//			if (hint_string == "EventAsset")
-//			{
-//				InspectorBrowserProperty* control = memnew(InspectorBrowserProperty);
-//				control->init(FMODStudioEditorModule::FMODAssetType::FMOD_ASSETTYPE_EVENT);
-//				add_property_editor(name, control);
-//				return true;
-//			}
-//			else if (hint_string == "BankAsset")
-//			{
-//				InspectorBrowserProperty* control = memnew(InspectorBrowserProperty);
-//				control->init(FMODStudioEditorModule::FMODAssetType::FMOD_ASSETTYPE_BANK);
-//				add_property_editor(name, control);
-//				return true;
-//			}
-//			else if (hint_string == "BusAsset")
-//			{
-//				InspectorBrowserProperty* control = memnew(InspectorBrowserProperty);
-//				control->init(FMODStudioEditorModule::FMODAssetType::FMOD_ASSETTYPE_BUS);
-//				add_property_editor(name, control);
-//				return true;
-//			}
-//			else if (hint_string == "VCAAsset")
-//			{
-//				InspectorBrowserProperty* control = memnew(InspectorBrowserProperty);
-//				control->init(FMODStudioEditorModule::FMODAssetType::FMOD_ASSETTYPE_VCA);
-//				add_property_editor(name, control);
-//				return true;
-//			}
-//			else if (hint_string == "ParameterAsset")
-//			{
-//				InspectorBrowserProperty* control = memnew(InspectorBrowserProperty);
-//				control->init(FMODStudioEditorModule::FMODAssetType::FMOD_ASSETTYPE_GLOBAL_PARAMETER);
-//				add_property_editor(name, control);
-//				return true;
-//			}
-//
-//			return false;
-//		}
-//
-//		return false;
-//	}
-//};
+class FMODEditorInspectorPlugin : public EditorInspectorPlugin
+{
+	GDCLASS(FMODEditorInspectorPlugin, EditorInspectorPlugin);
+
+protected:
+	static void _bind_methods() {}
+
+private:
+	float editor_scale = 1.0f;
+
+public:
+	virtual bool _can_handle(Object* object) const override
+	{
+		return object != nullptr;
+	}
+
+	virtual bool _parse_property(Object* object, Variant::Type type, const String& name, PropertyHint hint_type,
+			const String& hint_string, BitField<PropertyUsageFlags> usage_flags, bool wide) override
+	{
+		if (object != nullptr && type == Variant::Type::OBJECT)
+		{
+			if (hint_string == "EventAsset")
+			{
+				FMODEditorInspectorProperty* control = memnew(FMODEditorInspectorProperty);
+				control->set_editor_scale(editor_scale);
+				control->init(FMODStudioEditorModule::FMODAssetType::FMOD_ASSETTYPE_EVENT);
+				add_property_editor(name, control);
+				return true;
+			}
+			else if (hint_string == "BankAsset")
+			{
+				FMODEditorInspectorProperty* control = memnew(FMODEditorInspectorProperty);
+				control->set_editor_scale(editor_scale);
+				control->init(FMODStudioEditorModule::FMODAssetType::FMOD_ASSETTYPE_BANK);
+				add_property_editor(name, control);
+				return true;
+			}
+			else if (hint_string == "BusAsset")
+			{
+				FMODEditorInspectorProperty* control = memnew(FMODEditorInspectorProperty);
+				control->set_editor_scale(editor_scale);
+				control->init(FMODStudioEditorModule::FMODAssetType::FMOD_ASSETTYPE_BUS);
+				add_property_editor(name, control);
+				return true;
+			}
+			else if (hint_string == "VCAAsset")
+			{
+				FMODEditorInspectorProperty* control = memnew(FMODEditorInspectorProperty);
+				control->set_editor_scale(editor_scale);
+				control->init(FMODStudioEditorModule::FMODAssetType::FMOD_ASSETTYPE_VCA);
+				add_property_editor(name, control);
+				return true;
+			}
+			else if (hint_string == "ParameterAsset")
+			{
+				FMODEditorInspectorProperty* control = memnew(FMODEditorInspectorProperty);
+				control->set_editor_scale(editor_scale);
+				control->init(FMODStudioEditorModule::FMODAssetType::FMOD_ASSETTYPE_GLOBAL_PARAMETER);
+				add_property_editor(name, control);
+				return true;
+			}
+
+			return false;
+		}
+
+		return false;
+	}
+
+	void set_editor_scale(float editor_scale)
+	{
+		this->editor_scale = editor_scale;
+	}
+};
 
 #endif // INSPECTOR_BROWSER_H

@@ -4,14 +4,14 @@ using namespace godot;
 
 const Size2i BASE_WINDOW_SIZE = Size2i(750, 550);
 const int BASE_DPI = 96;
-const int STANDARD_MARGIN = 20;
+const int STANDARD_MARGIN = 10;
 
-void ProjectBrowserTree::_bind_methods()
+void FMODProjectBrowserTree::_bind_methods()
 {
-	ClassDB::bind_method(D_METHOD("on_connection_finished"), &ProjectBrowserTree::on_connection_finished);
+	ClassDB::bind_method(D_METHOD("on_connection_finished"), &FMODProjectBrowserTree::on_connection_finished);
 }
 
-void ProjectBrowserTree::initialize()
+void FMODProjectBrowserTree::initialize()
 {
 	set_allow_reselect(true);
 	set_allow_rmb_select(true);
@@ -21,7 +21,7 @@ void ProjectBrowserTree::initialize()
 	populate_browser();
 }
 
-void ProjectBrowserTree::populate_browser()
+void FMODProjectBrowserTree::populate_browser()
 {
 	clear();
 	root = create_item();
@@ -84,7 +84,7 @@ void ProjectBrowserTree::populate_browser()
 	}
 }
 
-void ProjectBrowserTree::update_project_text()
+void FMODProjectBrowserTree::update_project_text()
 {
 	String project_message = "studio.project.filePath.replace(/^.*[\\\\\\/]/, '')";
 	String result;
@@ -95,7 +95,7 @@ void ProjectBrowserTree::update_project_text()
 	}
 }
 
-void ProjectBrowserTree::on_connection_finished()
+void FMODProjectBrowserTree::on_connection_finished()
 {
 	if (client->client_is_connected)
 	{
@@ -103,12 +103,12 @@ void ProjectBrowserTree::on_connection_finished()
 	}
 }
 
-void DiscreteParameterControl::_bind_methods()
+void FMODEditorDiscreteParameter::_bind_methods()
 {
-	ClassDB::bind_method(D_METHOD("on_value_changed", "value"), &DiscreteParameterControl::on_value_changed);
+	ClassDB::bind_method(D_METHOD("on_value_changed", "value"), &FMODEditorDiscreteParameter::on_value_changed);
 }
 
-void DiscreteParameterControl::initialize(const Ref<FmodTypes::FMOD_STUDIO_PARAMETER_DESCRIPTION>& desc, Size2 size)
+void FMODEditorDiscreteParameter::initialize(const Ref<FmodTypes::FMOD_STUDIO_PARAMETER_DESCRIPTION>& desc, Size2 size)
 {
 	set_min(desc->get_minimum());
 	set_max(desc->get_maximum());
@@ -124,17 +124,17 @@ void DiscreteParameterControl::initialize(const Ref<FmodTypes::FMOD_STUDIO_PARAM
 	connect("value_changed", Callable(this, "on_value_changed"));
 }
 
-void DiscreteParameterControl::on_value_changed(float value)
+void FMODEditorDiscreteParameter::on_value_changed(float value)
 {
 	FMODStudioEditorModule::get_singleton()->set_preview_parameter(parameter_name, value);
 }
 
-void LabeledParameterControl::_bind_methods()
+void FMODEditorLabeledParameter::_bind_methods()
 {
-	ClassDB::bind_method(D_METHOD("on_item_selected", "value"), &LabeledParameterControl::on_item_selected);
+	ClassDB::bind_method(D_METHOD("on_item_selected", "value"), &FMODEditorLabeledParameter::on_item_selected);
 }
 
-void LabeledParameterControl::initialize(const Ref<ParameterAsset>& parameter, Size2 size)
+void FMODEditorLabeledParameter::initialize(const Ref<ParameterAsset>& parameter, Size2 size)
 {
 	set_h_size_flags(Control::SizeFlags::SIZE_EXPAND_FILL);
 	set_v_size_flags(Control::SizeFlags::SIZE_SHRINK_CENTER);
@@ -150,17 +150,17 @@ void LabeledParameterControl::initialize(const Ref<ParameterAsset>& parameter, S
 	connect("item_selected", Callable(this, "on_item_selected"));
 }
 
-void LabeledParameterControl::on_item_selected(int value)
+void FMODEditorLabeledParameter::on_item_selected(int value)
 {
 	FMODStudioEditorModule::get_singleton()->set_preview_parameter(parameter_name, static_cast<float>(value));
 }
 
-void ContinuousParameterControl::_bind_methods()
+void FMODEditorContinuousParameter::_bind_methods()
 {
-	ClassDB::bind_method(D_METHOD("on_value_changed", "value"), &ContinuousParameterControl::on_value_changed);
+	ClassDB::bind_method(D_METHOD("on_value_changed", "value"), &FMODEditorContinuousParameter::on_value_changed);
 }
 
-void ContinuousParameterControl::initialize(const Ref<FmodTypes::FMOD_STUDIO_PARAMETER_DESCRIPTION>& desc, Size2 size)
+void FMODEditorContinuousParameter::initialize(const Ref<FmodTypes::FMOD_STUDIO_PARAMETER_DESCRIPTION>& desc, Size2 size)
 {
 	set_min(desc->get_minimum());
 	set_max(desc->get_maximum());
@@ -174,43 +174,43 @@ void ContinuousParameterControl::initialize(const Ref<FmodTypes::FMOD_STUDIO_PAR
 	connect("value_changed", Callable(this, "on_value_changed"));
 }
 
-void ContinuousParameterControl::on_value_changed(float value)
+void FMODEditorContinuousParameter::on_value_changed(float value)
 {
 	FMODStudioEditorModule::get_singleton()->set_preview_parameter(parameter_name, value);
 }
 
-void ProjectBrowserWindow::_bind_methods()
+void FMODProjectBrowserWindow::_bind_methods()
 {
-	ClassDB::bind_method(D_METHOD("on_about_to_popup"), &ProjectBrowserWindow::on_about_to_popup);
-	ClassDB::bind_method(D_METHOD("on_close_requested"), &ProjectBrowserWindow::on_close_requested);
-	ClassDB::bind_method(D_METHOD("on_size_changed"), &ProjectBrowserWindow::on_size_changed);
-	ClassDB::bind_method(D_METHOD("on_github_link_pressed"), &ProjectBrowserWindow::on_github_link_pressed);
-	ClassDB::bind_method(D_METHOD("on_tutorials_link_pressed"), &ProjectBrowserWindow::on_tutorials_link_pressed);
-	ClassDB::bind_method(D_METHOD("on_contact_link_pressed"), &ProjectBrowserWindow::on_contact_link_pressed);
-	ClassDB::bind_method(D_METHOD("on_search_text_changed", "text"), &ProjectBrowserWindow::on_search_text_changed);
-	ClassDB::bind_method(D_METHOD("on_cell_selected"), &ProjectBrowserWindow::on_cell_selected);
-	ClassDB::bind_method(D_METHOD("on_refresh_button_pressed"), &ProjectBrowserWindow::on_refresh_button_pressed);
+	ClassDB::bind_method(D_METHOD("on_about_to_popup"), &FMODProjectBrowserWindow::on_about_to_popup);
+	ClassDB::bind_method(D_METHOD("on_close_requested"), &FMODProjectBrowserWindow::on_close_requested);
+	ClassDB::bind_method(D_METHOD("on_size_changed"), &FMODProjectBrowserWindow::on_size_changed);
+	ClassDB::bind_method(D_METHOD("on_github_link_pressed"), &FMODProjectBrowserWindow::on_github_link_pressed);
+	ClassDB::bind_method(D_METHOD("on_tutorials_link_pressed"), &FMODProjectBrowserWindow::on_tutorials_link_pressed);
+	ClassDB::bind_method(D_METHOD("on_contact_link_pressed"), &FMODProjectBrowserWindow::on_contact_link_pressed);
+	ClassDB::bind_method(D_METHOD("on_search_text_changed", "text"), &FMODProjectBrowserWindow::on_search_text_changed);
+	ClassDB::bind_method(D_METHOD("on_cell_selected"), &FMODProjectBrowserWindow::on_cell_selected);
+	ClassDB::bind_method(D_METHOD("on_refresh_button_pressed"), &FMODProjectBrowserWindow::on_refresh_button_pressed);
 	ClassDB::bind_method(D_METHOD("on_generate_guids_button_pressed"),
-			&ProjectBrowserWindow::on_generate_guids_button_pressed);
-	ClassDB::bind_method(D_METHOD("on_play_button_pressed"), &ProjectBrowserWindow::on_play_button_pressed);
-	ClassDB::bind_method(D_METHOD("on_stop_button_pressed"), &ProjectBrowserWindow::on_stop_button_pressed);
-	ClassDB::bind_method(D_METHOD("on_checkbox_toggled", "button_pressed"), &ProjectBrowserWindow::on_checkbox_toggled);
-	ClassDB::bind_method(D_METHOD("on_event_popup_id_pressed", "id"), &ProjectBrowserWindow::on_event_popup_id_pressed);
-	ClassDB::bind_method(D_METHOD("on_bank_popup_id_pressed", "id"), &ProjectBrowserWindow::on_bank_popup_id_pressed);
-	ClassDB::bind_method(D_METHOD("set_editor_scale", "scale"), &ProjectBrowserWindow::set_editor_scale);
-	ClassDB::bind_method(D_METHOD("initialize"), &ProjectBrowserWindow::initialize);
+			&FMODProjectBrowserWindow::on_generate_guids_button_pressed);
+	ClassDB::bind_method(D_METHOD("on_play_button_pressed"), &FMODProjectBrowserWindow::on_play_button_pressed);
+	ClassDB::bind_method(D_METHOD("on_stop_button_pressed"), &FMODProjectBrowserWindow::on_stop_button_pressed);
+	ClassDB::bind_method(D_METHOD("on_checkbox_toggled", "button_pressed"), &FMODProjectBrowserWindow::on_checkbox_toggled);
+	ClassDB::bind_method(D_METHOD("on_event_popup_id_pressed", "id"), &FMODProjectBrowserWindow::on_event_popup_id_pressed);
+	ClassDB::bind_method(D_METHOD("on_bank_popup_id_pressed", "id"), &FMODProjectBrowserWindow::on_bank_popup_id_pressed);
+	ClassDB::bind_method(D_METHOD("set_editor_scale", "scale"), &FMODProjectBrowserWindow::set_editor_scale);
+	ClassDB::bind_method(D_METHOD("initialize"), &FMODProjectBrowserWindow::initialize);
 }
 
-void ProjectBrowserWindow::popup_menu(PopupType type, Vector2 pos)
+void FMODProjectBrowserWindow::popup_menu(PopupType type, Vector2 pos)
 {
 	switch (type)
 	{
-		case ProjectBrowserWindow::POPUP_EVENT:
+		case FMODProjectBrowserWindow::POPUP_EVENT:
 		{
 			event_popup->popup_on_parent(Rect2(pos, Vector2(0, 0)));
 			break;
 		}
-		case ProjectBrowserWindow::POPUP_BANK:
+		case FMODProjectBrowserWindow::POPUP_BANK:
 			bank_popup->popup_on_parent(Rect2(pos, Vector2(0, 0)));
 			break;
 		default:
@@ -218,7 +218,7 @@ void ProjectBrowserWindow::popup_menu(PopupType type, Vector2 pos)
 	}
 }
 
-bool ProjectBrowserWindow::update_filter(TreeItem* p_parent, bool p_scroll_to_selected)
+bool FMODProjectBrowserWindow::update_filter(TreeItem* p_parent, bool p_scroll_to_selected)
 {
 	if (!p_parent)
 	{
@@ -276,7 +276,7 @@ bool ProjectBrowserWindow::update_filter(TreeItem* p_parent, bool p_scroll_to_se
 	return keep;
 }
 
-void ProjectBrowserWindow::collapse_all(TreeItem* p_parent)
+void FMODProjectBrowserWindow::collapse_all(TreeItem* p_parent)
 {
 	if (!p_parent)
 	{
@@ -292,7 +292,7 @@ void ProjectBrowserWindow::collapse_all(TreeItem* p_parent)
 	}
 }
 
-void ProjectBrowserWindow::on_about_to_popup()
+void FMODProjectBrowserWindow::on_about_to_popup()
 {
 	Ref<FmodTCPClient> client = FMODStudioEditorModule::get_singleton()->client;
 
@@ -309,40 +309,40 @@ void ProjectBrowserWindow::on_about_to_popup()
 	project_tree->populate_browser();
 }
 
-void ProjectBrowserWindow::on_close_requested()
+void FMODProjectBrowserWindow::on_close_requested()
 {
 	set_visible(false);
 	FMODStudioEditorModule::get_singleton()->unload_all_banks();
 	FMODStudioEditorModule::get_singleton()->shutdown();
 }
 
-void ProjectBrowserWindow::on_size_changed()
+void FMODProjectBrowserWindow::on_size_changed()
 {
 	parent_vbox_container->set_size(get_size());
 }
 
-void ProjectBrowserWindow::on_github_link_pressed()
+void FMODProjectBrowserWindow::on_github_link_pressed()
 {
 	OS::get_singleton()->shell_open(github_url);
 }
 
-void ProjectBrowserWindow::on_tutorials_link_pressed()
+void FMODProjectBrowserWindow::on_tutorials_link_pressed()
 {
 	OS::get_singleton()->shell_open(tutorials_url);
 }
 
-void ProjectBrowserWindow::on_contact_link_pressed()
+void FMODProjectBrowserWindow::on_contact_link_pressed()
 {
 	OS::get_singleton()->shell_open(email_url);
 }
 
-void ProjectBrowserWindow::on_search_text_changed(const String& text)
+void FMODProjectBrowserWindow::on_search_text_changed(const String& text)
 {
 	filter = text;
 	update_filter(project_tree->root);
 }
 
-void ProjectBrowserWindow::on_cell_selected()
+void FMODProjectBrowserWindow::on_cell_selected()
 {
 	parameters_margin_container->set_visible(false);
 
@@ -422,7 +422,7 @@ void ProjectBrowserWindow::on_cell_selected()
 
 		if ((flags & FMOD_STUDIO_PARAMETER_DISCRETE) && !(flags & FMOD_STUDIO_PARAMETER_LABELED))
 		{
-			DiscreteParameterControl* spinbox = memnew(DiscreteParameterControl);
+			FMODEditorDiscreteParameter* spinbox = memnew(FMODEditorDiscreteParameter);
 			spinbox->initialize(parameter_description, Size2(get_size().x / 5, 0));
 
 			parameter_hbox_container->add_child(spinbox);
@@ -430,7 +430,7 @@ void ProjectBrowserWindow::on_cell_selected()
 		}
 		else if (flags & FMOD_STUDIO_PARAMETER_LABELED)
 		{
-			LabeledParameterControl* option_button = memnew(LabeledParameterControl);
+			FMODEditorLabeledParameter* option_button = memnew(FMODEditorLabeledParameter);
 			option_button->initialize(parameter, Size2(get_size().x / 5, 0));
 
 			parameter_hbox_container->add_child(option_button);
@@ -438,7 +438,7 @@ void ProjectBrowserWindow::on_cell_selected()
 		}
 		else
 		{
-			ContinuousParameterControl* spin_slider = memnew(ContinuousParameterControl);
+			FMODEditorContinuousParameter* spin_slider = memnew(FMODEditorContinuousParameter);
 			spin_slider->initialize(parameter_description, Size2(get_size().x / 5, 0));
 
 			parameter_hbox_container->add_child(spin_slider);
@@ -447,7 +447,7 @@ void ProjectBrowserWindow::on_cell_selected()
 	}
 }
 
-void ProjectBrowserWindow::on_refresh_button_pressed()
+void FMODProjectBrowserWindow::on_refresh_button_pressed()
 {
 	FMODStudioEditorModule::get_singleton()->unload_all_banks();
 	FMODStudioEditorModule::get_singleton()->load_all_banks();
@@ -457,7 +457,7 @@ void ProjectBrowserWindow::on_refresh_button_pressed()
 	project_tree->populate_browser();
 }
 
-void ProjectBrowserWindow::on_generate_guids_button_pressed()
+void FMODProjectBrowserWindow::on_generate_guids_button_pressed()
 {
 	Ref<FmodTCPClient> client = FMODStudioEditorModule::get_singleton()->client;
 
@@ -495,7 +495,7 @@ void ProjectBrowserWindow::on_generate_guids_button_pressed()
 	}
 }
 
-void ProjectBrowserWindow::on_play_button_pressed()
+void FMODProjectBrowserWindow::on_play_button_pressed()
 {
 	if (!selected_item)
 	{
@@ -515,17 +515,17 @@ void ProjectBrowserWindow::on_play_button_pressed()
 	}
 }
 
-void ProjectBrowserWindow::on_stop_button_pressed()
+void FMODProjectBrowserWindow::on_stop_button_pressed()
 {
 	FMODStudioEditorModule::get_singleton()->stop_events(allow_fadeout);
 }
 
-void ProjectBrowserWindow::on_checkbox_toggled(bool button_pressed)
+void FMODProjectBrowserWindow::on_checkbox_toggled(bool button_pressed)
 {
 	allow_fadeout = button_pressed;
 }
 
-void ProjectBrowserWindow::on_event_popup_id_pressed(int32_t id)
+void FMODProjectBrowserWindow::on_event_popup_id_pressed(int32_t id)
 {
 	if (!selected_item)
 	{
@@ -574,7 +574,7 @@ void ProjectBrowserWindow::on_event_popup_id_pressed(int32_t id)
 	}
 }
 
-void ProjectBrowserWindow::on_bank_popup_id_pressed(int32_t id)
+void FMODProjectBrowserWindow::on_bank_popup_id_pressed(int32_t id)
 {
 	if (!selected_item)
 	{
@@ -620,7 +620,7 @@ void ProjectBrowserWindow::on_bank_popup_id_pressed(int32_t id)
 	}
 }
 
-void ProjectBrowserWindow::_input(const Ref<InputEvent>& event)
+void FMODProjectBrowserWindow::_input(const Ref<InputEvent>& event)
 {
 	if (is_visible())
 	{
@@ -655,21 +655,21 @@ void ProjectBrowserWindow::_input(const Ref<InputEvent>& event)
 	}
 }
 
-void ProjectBrowserWindow::set_editor_scale(float scale)
+void FMODProjectBrowserWindow::set_editor_scale(float scale)
 {
 	editor_scale = scale;
 }
 
-void ProjectBrowserWindow::initialize()
+void FMODProjectBrowserWindow::initialize()
 {
 	set_initial_position(Window::WindowInitialPosition::WINDOW_INITIAL_POSITION_CENTER_MAIN_WINDOW_SCREEN);
 	set_visible(false);
 	set_wrap_controls(true);
 	set_title("FMOD Project Browser");
 	set_exclusive(true);
-	set_transparent_background(true);
 	connect("about_to_popup", Callable(this, "on_about_to_popup"));
 	connect("close_requested", Callable(this, "on_close_requested"));
+	connect("confirmed", Callable(this, "on_close_requested"));
 	connect("size_changed", Callable(this, "on_size_changed"));
 
 	Size2 window_size = BASE_WINDOW_SIZE;
@@ -687,14 +687,6 @@ void ProjectBrowserWindow::initialize()
 
 		window_size *= editor_scale;
 	}
-
-	// note(alex): The colors of the Window elements (buttons etc.) are almost identical to the background, which make them very hard to distinguish.
-	// We are adding a Panel here to darken the background of the Window a bit. Investigate what is going wrong here.
-	panel = memnew(Panel);
-	panel->set_anchors_preset(Control::LayoutPreset::PRESET_FULL_RECT);
-	panel->set_self_modulate(Color(1.f, 1.f, 1.f, 0.85f));
-	add_child(panel);
-	panel->set_owner(this);
 
 	parent_vbox_container = memnew(VBoxContainer);
 	parent_vbox_container->set_size(window_size);
@@ -790,7 +782,7 @@ void ProjectBrowserWindow::initialize()
 	tree_margin_container->add_child(tree_hbox_container);
 	tree_hbox_container->set_owner(tree_margin_container);
 
-	project_tree = memnew(ProjectBrowserTree);
+	project_tree = memnew(FMODProjectBrowserTree);
 	project_tree->client = FMODStudioEditorModule::get_singleton()->client;
 	project_tree->initialize();
 	project_tree->connect("cell_selected", Callable(this, "on_cell_selected"));
@@ -844,7 +836,6 @@ void ProjectBrowserWindow::initialize()
 	bottom_margin_container->add_theme_constant_override("margin_left", 15);
 	bottom_margin_container->add_theme_constant_override("margin_right", 15);
 	bottom_margin_container->add_theme_constant_override("margin_top", 15);
-	bottom_margin_container->add_theme_constant_override("margin_bottom", 15);
 	bottom_hbox_container->add_child(bottom_margin_container);
 	bottom_margin_container->set_owner(bottom_hbox_container);
 

@@ -3,12 +3,30 @@
 using namespace godot;
 
 FMODStudioEditorModule* FMODStudioEditorModule::singleton = nullptr;
+FMODSettings* FMODSettings::singleton = nullptr;
 
 void FMODSettings::_bind_methods()
 {
 }
 
 FMODSettings::FMODSettings()
+{
+	ERR_FAIL_COND(singleton != nullptr);
+	singleton = this;
+}
+
+FMODSettings::~FMODSettings()
+{
+	ERR_FAIL_COND(singleton != this);
+	singleton = nullptr;
+}
+
+FMODSettings* FMODSettings::get_singleton()
+{
+	return nullptr;
+}
+
+void FMODSettings::initialize()
 {
 	add_fmod_settings();
 
@@ -430,6 +448,8 @@ bool FMODStudioEditorModule::init()
 		return result;
 	}
 
+	set_is_initialized(true);
+
 	String message = "[FMOD] Initialized Editor System";
 	UtilityFunctions::print(message);
 
@@ -443,6 +463,7 @@ void FMODStudioEditorModule::shutdown()
 {
 	if (shutdown_fmod())
 	{
+		set_is_initialized(false);
 		String message = "[FMOD] Shut down Editor System";
 		UtilityFunctions::print(message);
 	}
@@ -616,192 +637,195 @@ Dictionary FMODStudioEditorModule::get_project_info_from_banks()
 
 	Dictionary events, snapshots, busses, vcas, parameters, banks;
 
-	for (int64_t i = 0; i < bank_refs.size(); i++)
+	if (get_is_initialized())
 	{
-		Ref<BankAsset> bank_asset = bank_refs[i];
-		FMOD::Studio::Bank* bank = nullptr;
-		String guid = bank_asset->get_guid();
-		FMOD_GUID fmod_guid{};
-		FMOD_Studio_ParseID(guid.utf8().get_data(), &fmod_guid);
-
-		if (!studio_system)
+		for (int64_t i = 0; i < bank_refs.size(); i++)
 		{
-			break;
-		}
+			Ref<BankAsset> bank_asset = bank_refs[i];
+			String guid = bank_asset->get_guid();
+			FMOD_GUID fmod_guid{};
+			FMOD_Studio_ParseID(guid.utf8().get_data(), &fmod_guid);
 
-		studio_system->getBankByID(&fmod_guid, &bank);
-
-		if (!FileAccess::file_exists(resource_dirs["banks"].operator godot::String() + guid + ".tres"))
-		{
-			ResourceSaver::get_singleton()->save(bank_asset, resource_dirs["banks"].operator godot::String() + guid + ".tres");
-			banks[guid] = bank_asset;
-		}
-		else
-		{
-			Ref<BankAsset> asset = ResourceLoader::get_singleton()->load(resource_dirs["banks"].operator godot::String() + guid + ".tres", "BankAsset");
-			asset->set_name(bank_asset->get_name());
-			asset->set_path(bank_asset->get_path());
-			asset->set_modified_time(bank_asset->get_modified_time());
-			ResourceSaver::get_singleton()->save(asset, resource_dirs["banks"].operator godot::String() + guid + ".tres");
-			banks[guid] = asset;
-		}
-
-		int event_count = 0;
-		bank->getEventCount(&event_count);
-
-		if (event_count > 0)
-		{
-			Dictionary event_infos = get_event_list(bank, event_count);
-			Array events_array = event_infos["events"];
-			Array snapshots_array = event_infos["snapshots"];
-
-			for (int64_t i = 0; i < events_array.size(); i++)
+			if (!studio_system)
 			{
-				Ref<EventAsset> event = events_array[i];
-				String guid = event->get_guid();
-
-				if (!FileAccess::file_exists(resource_dirs["events"].operator godot::String() + guid + ".tres"))
-				{
-					ResourceSaver::get_singleton()->save(event, resource_dirs["events"].operator godot::String() + guid + ".tres");
-					events[guid] = event;
-				}
-				else
-				{
-					Ref<EventAsset> asset = ResourceLoader::get_singleton()->load(resource_dirs["events"].operator godot::String() + guid + ".tres", "EventAsset");
-
-					if (has_event_changed(asset, event))
-					{
-						asset->set_name(event->get_name());
-						asset->set_path(event->get_path());
-						asset->set_3d(event->get_3d());
-						asset->set_oneshot(event->get_oneshot());
-						asset->set_is_snapshot(event->get_is_snapshot());
-						asset->set_min_distance(event->get_min_distance());
-						asset->set_max_distance(event->get_max_distance());
-						asset->set_parameters(event->get_parameters());
-						ResourceSaver::get_singleton()->save(asset, resource_dirs["events"].operator godot::String() + guid + ".tres");
-					}
-					events[guid] = asset;
-				}
+				break;
 			}
 
-			for (int64_t i = 0; i < snapshots_array.size(); i++)
+			FMOD::Studio::Bank* bank = nullptr;
+			studio_system->getBankByID(&fmod_guid, &bank);
+
+			if (!FileAccess::file_exists(resource_dirs["banks"].operator godot::String() + guid + ".tres"))
 			{
-				Ref<EventAsset> snapshot = snapshots_array[i];
-				String guid = snapshot->get_guid();
-
-				if (!FileAccess::file_exists(resource_dirs["snapshots"].operator godot::String() + guid + ".tres"))
-				{
-					ResourceSaver::get_singleton()->save(snapshot, resource_dirs["snapshots"].operator godot::String() + guid + ".tres");
-					snapshots[guid] = ResourceSaver::get_singleton()->save(snapshot, resource_dirs["snapshots"].operator godot::String() + guid + ".tres");
-				}
-				else
-				{
-					Ref<EventAsset> asset = ResourceLoader::get_singleton()->load(resource_dirs["snapshots"].operator godot::String() + guid + ".tres", "EventAsset");
-					if (has_event_changed(asset, snapshot))
-					{
-						asset->set_name(snapshot->get_name());
-						asset->set_path(snapshot->get_path());
-						asset->set_3d(snapshot->get_3d());
-						asset->set_oneshot(snapshot->get_oneshot());
-						asset->set_is_snapshot(snapshot->get_is_snapshot());
-						asset->set_min_distance(snapshot->get_min_distance());
-						asset->set_max_distance(snapshot->get_max_distance());
-						asset->set_parameters(snapshot->get_parameters());
-						ResourceSaver::get_singleton()->save(asset, resource_dirs["snapshots"].operator godot::String() + guid + ".tres");
-					}
-					snapshots[guid] = asset;
-				}
-			}
-		}
-
-		int bus_count = 0;
-		bank->getBusCount(&bus_count);
-
-		if (bus_count > 0)
-		{
-			Array bus_infos = get_bus_list(bank, bus_count);
-
-			for (int64_t i = 0; i < bus_infos.size(); i++)
-			{
-				Ref<BusAsset> bus = bus_infos[i];
-				String guid = bus->get_guid();
-
-				if (!FileAccess::file_exists(resource_dirs["busses"].operator godot::String() + guid + ".tres"))
-				{
-					ResourceSaver::get_singleton()->save(bus, resource_dirs["busses"].operator godot::String() + guid + ".tres");
-					busses[guid] = bus;
-				}
-				else
-				{
-					Ref<BusAsset> asset = ResourceLoader::get_singleton()->load(resource_dirs["busses"].operator godot::String() + guid + ".tres", "BusAsset");
-					asset->set_name(bus->get_name());
-					asset->set_path(bus->get_path());
-					ResourceSaver::get_singleton()->save(asset, resource_dirs["busses"].operator godot::String() + guid + ".tres");
-					busses[guid] = asset;
-				}
-			}
-		}
-
-		int vca_count = 0;
-		bank->getVCACount(&vca_count);
-
-		if (vca_count > 0)
-		{
-			Array vca_infos = get_vca_list(bank, vca_count);
-			for (int64_t i = 0; i < vca_infos.size(); i++)
-			{
-				Ref<VCAAsset> vca = vca_infos[i];
-				String guid = vca->get_guid();
-
-				if (!FileAccess::file_exists(resource_dirs["vcas"].operator godot::String() + guid + ".tres"))
-				{
-					ResourceSaver::get_singleton()->save(vca, resource_dirs["vcas"].operator godot::String() + guid + ".tres");
-					vcas[guid] = vca;
-				}
-				else
-				{
-					Ref<VCAAsset> asset = ResourceLoader::get_singleton()->load(resource_dirs["vcas"].operator godot::String() + guid + ".tres", "VCAAsset");
-					asset->set_name(vca->get_name());
-					asset->set_path(vca->get_path());
-					ResourceSaver::get_singleton()->save(asset, resource_dirs["vcas"].operator godot::String() + guid + ".tres");
-					vcas[guid] = asset;
-				}
-			}
-		}
-	}
-
-	int parameter_count = 0;
-
-	if (studio_system)
-	{
-		studio_system->getParameterDescriptionCount(&parameter_count);
-	}
-
-	if (parameter_count > 0)
-	{
-		Array parameter_infos = get_global_parameter_list(parameter_count);
-		for (int64_t i = 0; i < parameter_infos.size(); i++)
-		{
-			Ref<ParameterAsset> parameter = parameter_infos[i];
-			String guid = parameter->get_guid();
-
-			if (!FileAccess::file_exists(resource_dirs["parameters"].operator godot::String() + guid + ".tres"))
-			{
-				ResourceSaver::get_singleton()->save(parameter, resource_dirs["parameters"].operator godot::String() + guid + ".tres");
-				parameters[guid] = parameter;
+				ResourceSaver::get_singleton()->save(bank_asset, resource_dirs["banks"].operator godot::String() + guid + ".tres");
+				banks[guid] = bank_asset;
 			}
 			else
 			{
-				Ref<ParameterAsset> asset = ResourceLoader::get_singleton()->load(resource_dirs["parameters"].operator godot::String() + guid + ".tres", "ParameterAsset");
-				asset->set_name(parameter->get_name());
-				asset->set_path(parameter->get_path());
-				asset->set_parameter_description(parameter->get_parameter_description());
-				FMOD_STUDIO_PARAMETER_DESCRIPTION desc;
-				parameter->get_parameter_description()->get_parameter_description(desc);
-				asset->set_parameter_ref(desc);
-				ResourceSaver::get_singleton()->save(asset, resource_dirs["parameters"].operator godot::String() + guid + ".tres");
-				parameters[guid] = asset;
+				Ref<BankAsset> asset = ResourceLoader::get_singleton()->load(resource_dirs["banks"].operator godot::String() + guid + ".tres", "BankAsset");
+				asset->set_name(bank_asset->get_name());
+				asset->set_path(bank_asset->get_path());
+				asset->set_modified_time(bank_asset->get_modified_time());
+				ResourceSaver::get_singleton()->save(asset, resource_dirs["banks"].operator godot::String() + guid + ".tres");
+				banks[guid] = asset;
+			}
+
+			int event_count = 0;
+			bank->getEventCount(&event_count);
+
+			if (event_count > 0)
+			{
+				Dictionary event_infos = get_event_list(bank, event_count);
+				Array events_array = event_infos["events"];
+				Array snapshots_array = event_infos["snapshots"];
+
+				for (int64_t i = 0; i < events_array.size(); i++)
+				{
+					Ref<EventAsset> event = events_array[i];
+					String guid = event->get_guid();
+
+					if (!FileAccess::file_exists(resource_dirs["events"].operator godot::String() + guid + ".tres"))
+					{
+						ResourceSaver::get_singleton()->save(event, resource_dirs["events"].operator godot::String() + guid + ".tres");
+						events[guid] = event;
+					}
+					else
+					{
+						Ref<EventAsset> asset = ResourceLoader::get_singleton()->load(resource_dirs["events"].operator godot::String() + guid + ".tres", "EventAsset");
+
+						if (has_event_changed(asset, event))
+						{
+							asset->set_name(event->get_name());
+							asset->set_path(event->get_path());
+							asset->set_3d(event->get_3d());
+							asset->set_oneshot(event->get_oneshot());
+							asset->set_is_snapshot(event->get_is_snapshot());
+							asset->set_min_distance(event->get_min_distance());
+							asset->set_max_distance(event->get_max_distance());
+							asset->set_parameters(event->get_parameters());
+							ResourceSaver::get_singleton()->save(asset, resource_dirs["events"].operator godot::String() + guid + ".tres");
+						}
+						events[guid] = asset;
+					}
+				}
+
+				for (int64_t i = 0; i < snapshots_array.size(); i++)
+				{
+					Ref<EventAsset> snapshot = snapshots_array[i];
+					String guid = snapshot->get_guid();
+
+					if (!FileAccess::file_exists(resource_dirs["snapshots"].operator godot::String() + guid + ".tres"))
+					{
+						ResourceSaver::get_singleton()->save(snapshot, resource_dirs["snapshots"].operator godot::String() + guid + ".tres");
+						snapshots[guid] = ResourceSaver::get_singleton()->save(snapshot, resource_dirs["snapshots"].operator godot::String() + guid + ".tres");
+					}
+					else
+					{
+						Ref<EventAsset> asset = ResourceLoader::get_singleton()->load(resource_dirs["snapshots"].operator godot::String() + guid + ".tres", "EventAsset");
+						if (has_event_changed(asset, snapshot))
+						{
+							asset->set_name(snapshot->get_name());
+							asset->set_path(snapshot->get_path());
+							asset->set_3d(snapshot->get_3d());
+							asset->set_oneshot(snapshot->get_oneshot());
+							asset->set_is_snapshot(snapshot->get_is_snapshot());
+							asset->set_min_distance(snapshot->get_min_distance());
+							asset->set_max_distance(snapshot->get_max_distance());
+							asset->set_parameters(snapshot->get_parameters());
+							ResourceSaver::get_singleton()->save(asset, resource_dirs["snapshots"].operator godot::String() + guid + ".tres");
+						}
+						snapshots[guid] = asset;
+					}
+				}
+			}
+
+			int bus_count = 0;
+			bank->getBusCount(&bus_count);
+
+			if (bus_count > 0)
+			{
+				Array bus_infos = get_bus_list(bank, bus_count);
+
+				for (int64_t i = 0; i < bus_infos.size(); i++)
+				{
+					Ref<BusAsset> bus = bus_infos[i];
+					String guid = bus->get_guid();
+
+					if (!FileAccess::file_exists(resource_dirs["busses"].operator godot::String() + guid + ".tres"))
+					{
+						ResourceSaver::get_singleton()->save(bus, resource_dirs["busses"].operator godot::String() + guid + ".tres");
+						busses[guid] = bus;
+					}
+					else
+					{
+						Ref<BusAsset> asset = ResourceLoader::get_singleton()->load(resource_dirs["busses"].operator godot::String() + guid + ".tres", "BusAsset");
+						asset->set_name(bus->get_name());
+						asset->set_path(bus->get_path());
+						ResourceSaver::get_singleton()->save(asset, resource_dirs["busses"].operator godot::String() + guid + ".tres");
+						busses[guid] = asset;
+					}
+				}
+			}
+
+			int vca_count = 0;
+			bank->getVCACount(&vca_count);
+
+			if (vca_count > 0)
+			{
+				Array vca_infos = get_vca_list(bank, vca_count);
+				for (int64_t i = 0; i < vca_infos.size(); i++)
+				{
+					Ref<VCAAsset> vca = vca_infos[i];
+					String guid = vca->get_guid();
+
+					if (!FileAccess::file_exists(resource_dirs["vcas"].operator godot::String() + guid + ".tres"))
+					{
+						ResourceSaver::get_singleton()->save(vca, resource_dirs["vcas"].operator godot::String() + guid + ".tres");
+						vcas[guid] = vca;
+					}
+					else
+					{
+						Ref<VCAAsset> asset = ResourceLoader::get_singleton()->load(resource_dirs["vcas"].operator godot::String() + guid + ".tres", "VCAAsset");
+						asset->set_name(vca->get_name());
+						asset->set_path(vca->get_path());
+						ResourceSaver::get_singleton()->save(asset, resource_dirs["vcas"].operator godot::String() + guid + ".tres");
+						vcas[guid] = asset;
+					}
+				}
+			}
+		}
+
+		int parameter_count = 0;
+
+		if (studio_system)
+		{
+			studio_system->getParameterDescriptionCount(&parameter_count);
+		}
+
+		if (parameter_count > 0)
+		{
+			Array parameter_infos = get_global_parameter_list(parameter_count);
+			for (int64_t i = 0; i < parameter_infos.size(); i++)
+			{
+				Ref<ParameterAsset> parameter = parameter_infos[i];
+				String guid = parameter->get_guid();
+
+				if (!FileAccess::file_exists(resource_dirs["parameters"].operator godot::String() + guid + ".tres"))
+				{
+					ResourceSaver::get_singleton()->save(parameter, resource_dirs["parameters"].operator godot::String() + guid + ".tres");
+					parameters[guid] = parameter;
+				}
+				else
+				{
+					Ref<ParameterAsset> asset = ResourceLoader::get_singleton()->load(resource_dirs["parameters"].operator godot::String() + guid + ".tres", "ParameterAsset");
+					asset->set_name(parameter->get_name());
+					asset->set_path(parameter->get_path());
+					asset->set_parameter_description(parameter->get_parameter_description());
+					FMOD_STUDIO_PARAMETER_DESCRIPTION desc;
+					parameter->get_parameter_description()->get_parameter_description(desc);
+					asset->set_parameter_ref(desc);
+					ResourceSaver::get_singleton()->save(asset, resource_dirs["parameters"].operator godot::String() + guid + ".tres");
+					parameters[guid] = asset;
+				}
 			}
 		}
 	}
@@ -1074,12 +1098,14 @@ bool FMODStudioEditorModule::sort_parameters_by_name(const Variant& a, const Var
 bool FMODStudioEditorModule::has_event_changed(const Ref<EventAsset>& old_event, const Ref<EventAsset>& to_check)
 {
 	String old_name = old_event->get_name();
+	String old_path = old_event->get_path();
 	bool old_3d = old_event->get_3d();
 	bool old_oneshot = old_event->get_oneshot();
 	float old_max_distance = old_event->get_max_distance();
 	float old_min_distance = old_event->get_min_distance();
 
 	if (old_name != to_check->get_name() ||
+			old_path != to_check->get_path() ||
 			old_3d != to_check->get_3d() ||
 			old_oneshot != to_check->get_oneshot() ||
 			old_max_distance != to_check->get_max_distance() ||
@@ -1149,7 +1175,7 @@ void FMODStudioEditorModule::stop_events(bool allow_fadeout)
 
 void FMODStudioEditorModule::set_preview_parameter(const String& parameter_name, float value)
 {
-	// note(alex): make this better in the future
+	// note(alex): make this better in the future - Doesn't work for one shots for example
 	for (int i = 0; i < preview_events.size(); i++)
 	{
 		preview_events[i]->setParameterByName(parameter_name.utf8().get_data(), value);

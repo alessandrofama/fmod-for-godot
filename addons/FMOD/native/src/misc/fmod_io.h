@@ -27,7 +27,6 @@ public:
 		if (FileAccess::get_open_error() != Error::OK)
 		{
 			*filesize = 0;
-			file->close();
 			memfree(file_handle);
 			return FMOD_ERR_FILE_NOTFOUND;
 		}

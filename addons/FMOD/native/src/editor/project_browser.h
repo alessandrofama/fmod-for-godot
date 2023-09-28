@@ -3,6 +3,7 @@
 
 #include "fmod_assets.h"
 #include "fmod_studio_editor_module.h"
+#include <godot_cpp/classes/accept_dialog.hpp>
 #include <godot_cpp/classes/button.hpp>
 #include <godot_cpp/classes/check_box.hpp>
 #include <godot_cpp/classes/display_server.hpp>
@@ -27,30 +28,30 @@
 #include <godot_cpp/classes/tree_item.hpp>
 #include <godot_cpp/classes/v_box_container.hpp>
 #include <godot_cpp/classes/v_separator.hpp>
-#include <godot_cpp/classes/window.hpp>
 
 using namespace godot;
 
-class ProjectBrowserPreviewButton : public Button
+class FMODProjectBrowserPreviewButton : public Button
 {
-	GDCLASS(ProjectBrowserPreviewButton, Button);
+	GDCLASS(FMODProjectBrowserPreviewButton, Button);
 
 protected:
 	static void _bind_methods(){};
 
 public:
-	ProjectBrowserPreviewButton()
+	FMODProjectBrowserPreviewButton() = default;
+	~FMODProjectBrowserPreviewButton() = default;
+
+	void initialize()
 	{
 		set_text("FMOD");
 		set_button_icon(FMODStudioEditorModule::get_singleton()->get_icon(FMODStudioEditorModule::FMODIconType::FMOD_ICONTYPE_PROJECT));
 	}
-
-	~ProjectBrowserPreviewButton() = default;
 };
 
-class ProjectBrowserTree : public Tree
+class FMODProjectBrowserTree : public Tree
 {
-	GDCLASS(ProjectBrowserTree, Tree);
+	GDCLASS(FMODProjectBrowserTree, Tree);
 
 protected:
 	static void _bind_methods();
@@ -72,9 +73,9 @@ public:
 	void on_connection_finished();
 };
 
-class DiscreteParameterControl : public SpinBox
+class FMODEditorDiscreteParameter : public SpinBox
 {
-	GDCLASS(DiscreteParameterControl, SpinBox);
+	GDCLASS(FMODEditorDiscreteParameter, SpinBox);
 
 protected:
 	static void _bind_methods();
@@ -85,9 +86,9 @@ public:
 	void on_value_changed(float value);
 };
 
-class LabeledParameterControl : public OptionButton
+class FMODEditorLabeledParameter : public OptionButton
 {
-	GDCLASS(LabeledParameterControl, OptionButton);
+	GDCLASS(FMODEditorLabeledParameter, OptionButton);
 
 protected:
 	static void _bind_methods();
@@ -98,9 +99,9 @@ public:
 	void on_item_selected(int value);
 };
 
-class ContinuousParameterControl : public EditorSpinSlider
+class FMODEditorContinuousParameter : public EditorSpinSlider
 {
-	GDCLASS(ContinuousParameterControl, EditorSpinSlider);
+	GDCLASS(FMODEditorContinuousParameter, EditorSpinSlider);
 
 protected:
 	static void _bind_methods();
@@ -111,9 +112,9 @@ public:
 	void on_value_changed(float value);
 };
 
-class ProjectBrowserWindow : public Window
+class FMODProjectBrowserWindow : public AcceptDialog
 {
-	GDCLASS(ProjectBrowserWindow, Window);
+	GDCLASS(FMODProjectBrowserWindow, AcceptDialog);
 
 	enum PopupType
 	{
@@ -139,7 +140,6 @@ protected:
 	static void _bind_methods();
 
 private:
-	Panel* panel = nullptr;
 	VBoxContainer* parent_vbox_container = nullptr;
 	MarginContainer* top_margin_container = nullptr;
 	VBoxContainer* top_vbox_container = nullptr;
@@ -155,7 +155,7 @@ private:
 	LineEdit* search_text = nullptr;
 	MarginContainer* tree_margin_container = nullptr;
 	HBoxContainer* tree_hbox_container = nullptr;
-	ProjectBrowserTree* project_tree = nullptr;
+	FMODProjectBrowserTree* project_tree = nullptr;
 	MarginContainer* parameters_margin_container = nullptr;
 	VBoxContainer* parameters_grid_container = nullptr;
 	MarginContainer* parameters_title_margin_container = nullptr;
