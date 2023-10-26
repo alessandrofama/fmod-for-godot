@@ -20,8 +20,8 @@ android.release.arm64 = "res://addons/FMOD/native/lib/android/arm64/release/libf
 [dependencies]
 windows.debug = {"lib/win64/debug/fmodL.dll": "", "lib/win64/debug/fmodstudioL.dll": ""}
 windows.release = {"lib/win64/release/fmod.dll": "", "lib/win64/release/fmodstudio.dll": ""}
-linux.debug = {"lib/linux/debug/libfmodL.so": "", "lib/linux/debug/libfmodL.so.13": "", "lib/linux/debug/libfmodL.so.13.12": "", "lib/linux/debug/libfmodstudioL.so": "", "lib/linux/debug/libfmodstudioL.so.13": "", "lib/linux/debug/libfmodstudioL.so.13.12": ""}
-linux.release = {"lib/linux/release/libfmod.so": "", "lib/linux/release/libfmod.so.13": "", "lib/linux/release/libfmod.so.13.12": "", "lib/linux/release/libfmodstudio.so": "", "lib/linux/release/libfmodstudio.so.13": "", "lib/linux/release/libfmodstudio.so.13.12": ""}
+linux.debug = {"lib/linux/debug/libfmodL.so": "", "lib/linux/debug/libfmodL.so.13": "", "lib/linux/debug/libfmodL.so.13.17": "", "lib/linux/debug/libfmodstudioL.so": "", "lib/linux/debug/libfmodstudioL.so.13": "", "lib/linux/debug/libfmodstudioL.so.13.17": ""}
+linux.release = {"lib/linux/release/libfmod.so": "", "lib/linux/release/libfmod.so.13": "", "lib/linux/release/libfmod.so.13.17": "", "lib/linux/release/libfmodstudio.so": "", "lib/linux/release/libfmodstudio.so.13": "", "lib/linux/release/libfmodstudio.so.13.17": ""}
 android.debug.arm64 = {"lib/android/arm64/debug/libfmodL.so": "", "lib/android/arm64/debug/libfmodstudioL.so": ""}
 android.release.arm64 = {"lib/android/arm64/release/libfmodL.so": "", "lib/android/arm64/release/libfmodstudioL.so": ""}
 
