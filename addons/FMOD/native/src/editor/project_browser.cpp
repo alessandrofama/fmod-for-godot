@@ -3,7 +3,6 @@
 using namespace godot;
 
 const Size2i BASE_WINDOW_SIZE = Size2i(750, 550);
-const int BASE_DPI = 96;
 const int STANDARD_MARGIN = 10;
 
 void FMODProjectBrowserTree::_bind_methods()

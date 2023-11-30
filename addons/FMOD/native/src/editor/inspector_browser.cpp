@@ -3,8 +3,6 @@
 
 using namespace godot;
 
-const int BASE_DPI = 96;
-
 void FMODEditorInspectorTree::_bind_methods()
 {
 	ClassDB::bind_method(D_METHOD("on_size_changed"), &FMODEditorInspectorTree::on_size_changed);
@@ -365,21 +363,7 @@ void FMODEditorInspector::initialize()
 	root_vbox->set_name("ParentVBoxContainer");
 
 	Size2 window_size = Size2(400, 680);
-	DisplayServer* display_server = DisplayServer::get_singleton();
-
-	if (display_server)
-	{
-		int32_t dpi = display_server->screen_get_dpi();
-
-		if (dpi != 72)
-		{
-			int dpi_scaling_factor = 1;
-			dpi_scaling_factor = dpi / BASE_DPI;
-			window_size *= dpi_scaling_factor;
-		}
-
-		window_size *= editor_scale;
-	}
+	window_size *= editor_scale;
 
 	root_vbox->set_size(window_size);
 	root_vbox->set_v_size_flags(Control::SIZE_EXPAND_FILL);

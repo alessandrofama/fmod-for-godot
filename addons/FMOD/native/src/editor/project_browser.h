@@ -176,7 +176,6 @@ private:
 	const String github_url = "https://github.com/alessandrofama/fmod-for-godot/";
 	const String tutorials_url = "https://alessandrofama.com/tutorials/fmod/godot/";
 	const String email_url = "mailto:me@alessandrofama.com?subject=FMOD%20for%20Godot%20Integration";
-	int dpi_scaling_factor{ 1 };
 	float editor_scale{ 1.0f };
 
 	void popup_menu(PopupType type, Vector2 pos);
