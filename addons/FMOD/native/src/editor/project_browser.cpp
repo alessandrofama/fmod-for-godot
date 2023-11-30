@@ -673,20 +673,7 @@ void FMODProjectBrowserWindow::initialize()
 	connect("size_changed", Callable(this, "on_size_changed"));
 
 	Size2 window_size = BASE_WINDOW_SIZE;
-	DisplayServer* display_server = DisplayServer::get_singleton();
-
-	if (display_server)
-	{
-		int32_t dpi = display_server->screen_get_dpi();
-
-		if (dpi != 72)
-		{
-			dpi_scaling_factor = dpi / BASE_DPI;
-			window_size *= dpi_scaling_factor;
-		}
-
-		window_size *= editor_scale;
-	}
+	window_size *= editor_scale;
 
 	parent_vbox_container = memnew(VBoxContainer);
 	parent_vbox_container->set_size(window_size);
