@@ -24,8 +24,6 @@ func _enter_tree() -> void:
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
-		if get_child(0) && debug_scene:
-			debug_scene.free()
 		FMODStudioModule.shutdown()
 
 
