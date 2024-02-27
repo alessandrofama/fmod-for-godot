@@ -544,6 +544,14 @@ void StudioEventEmitterImpl<T>::_process(double p_delta)
 			}
 		}
 	}
+
+	bool is_currently_playing = is_playing();
+	if (was_playing != is_currently_playing && !is_currently_playing)
+	{
+		node->emit_signal("finished");
+	}
+	was_playing = is_currently_playing;
+
 }
 
 template <typename T>
@@ -638,6 +646,7 @@ void StudioEventEmitter2D::_bind_methods()
 	ClassDB::bind_method(D_METHOD("play"), &StudioEventEmitter2D::play);
 	ClassDB::bind_method(D_METHOD("stop"), &StudioEventEmitter2D::stop);
 	ClassDB::bind_method(D_METHOD("lookup"), &StudioEventEmitter2D::lookup);
+	ClassDB::bind_method(D_METHOD("is_playing"), &StudioEventEmitter2D::is_playing);
 	ClassDB::bind_method(D_METHOD("set_play_event", "play_event"), &StudioEventEmitter2D::set_play_event);
 	ClassDB::bind_method(D_METHOD("get_play_event"), &StudioEventEmitter2D::get_play_event);
 	ClassDB::bind_method(D_METHOD("set_stop_event", "stop_event"), &StudioEventEmitter2D::set_stop_event);
@@ -669,6 +678,7 @@ void StudioEventEmitter2D::_bind_methods()
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "rigidbody", PROPERTY_HINT_NODE_TYPE, "PhysicsBody2D"), "set_rigidbody",
 			"get_rigidbody");
 	ADD_SIGNAL(MethodInfo("event_changed", PropertyInfo(Variant::STRING, "value")));
+	ADD_SIGNAL(MethodInfo("finished"));
 }
 
 bool StudioEventEmitter2D::_set(const StringName& p_name, const Variant& p_value)
@@ -736,6 +746,12 @@ void StudioEventEmitter2D::lookup()
 {
 	implementation.lookup();
 }
+
+bool StudioEventEmitter2D::is_playing()
+{
+	return implementation.is_playing();
+}
+
 
 float StudioEventEmitter2D::get_max_distance()
 {
@@ -859,6 +875,7 @@ void StudioEventEmitter3D::_bind_methods()
 	ClassDB::bind_method(D_METHOD("play"), &StudioEventEmitter3D::play);
 	ClassDB::bind_method(D_METHOD("stop"), &StudioEventEmitter3D::stop);
 	ClassDB::bind_method(D_METHOD("lookup"), &StudioEventEmitter3D::lookup);
+	ClassDB::bind_method(D_METHOD("is_playing"), &StudioEventEmitter3D::is_playing);
 	ClassDB::bind_method(D_METHOD("set_play_event", "play_event"), &StudioEventEmitter3D::set_play_event);
 	ClassDB::bind_method(D_METHOD("get_play_event"), &StudioEventEmitter3D::get_play_event);
 	ClassDB::bind_method(D_METHOD("set_stop_event", "stop_event"), &StudioEventEmitter3D::set_stop_event);
@@ -890,6 +907,7 @@ void StudioEventEmitter3D::_bind_methods()
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "rigidbody", PROPERTY_HINT_NODE_TYPE, "PhysicsBody3D"), "set_rigidbody",
 			"get_rigidbody");
 	ADD_SIGNAL(MethodInfo("event_changed", PropertyInfo(Variant::STRING, "value")));
+	ADD_SIGNAL(MethodInfo("finished"));
 }
 
 bool StudioEventEmitter3D::_set(const StringName& p_name, const Variant& p_value)
@@ -984,6 +1002,11 @@ void StudioEventEmitter3D::stop()
 void StudioEventEmitter3D::lookup()
 {
 	implementation.lookup();
+}
+
+bool StudioEventEmitter3D::is_playing()
+{
+	return implementation.is_playing();
 }
 
 float StudioEventEmitter3D::get_max_distance()

@@ -18,6 +18,7 @@ struct StudioEventEmitterImpl
 	Ref<EventAsset> event;
 	bool has_triggered{};
 	bool is_active{};
+	bool was_playing{};
 	bool preload_samples{};
 	bool allow_fadeout = true;
 	bool trigger_once{};
@@ -78,6 +79,7 @@ public:
 	void stop();
 	void lookup();
 	float get_max_distance();
+	bool is_playing();
 
 	void set_play_event(RuntimeUtils::GameEvent play_event);
 	RuntimeUtils::GameEvent get_play_event() const;
@@ -132,6 +134,7 @@ public:
 	void stop();
 	void lookup();
 	float get_max_distance();
+	bool is_playing();
 
 	void set_play_event(RuntimeUtils::GameEvent play_event);
 	RuntimeUtils::GameEvent get_play_event() const;
